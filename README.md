@@ -11,15 +11,6 @@
 - 프로필 여러 개 저장·수정·삭제, 분석 목록 저장·삭제, 자동 저장, 리포트 마크다운 복사
 - 모든 데이터는 각자 브라우저(localStorage)에만 저장
 
-## 배포 (GitHub + Vercel)
-1. github.com → **+ → New repository** → 이름 `company-analyzer` → **Create repository**
-2. **uploading an existing file** → `index.html`, `README.md` 끌어다 놓기 → **Commit changes**
-3. vercel.com → **Continue with GitHub** → **Add New → Project** → 저장소 **Import**
-4. 설정 그대로 **Deploy** → `https://company-analyzer-xxxx.vercel.app` 주소 생성
-5. 주소 공유
-
-수정할 때는 GitHub에서 `index.html`을 새 파일로 다시 올리면 Vercel이 자동으로 다시 배포합니다.
-
 ## 참고
 - 데이터는 브라우저별로 따로 저장됩니다. 다른 기기에서는 보이지 않고, 브라우저의 사이트 데이터를 지우면 사라집니다. 중요한 리포트는 [리포트 복사]로 따로 보관하세요.
 - 조사 바로가기는 각 사이트의 검색 결과 페이지로 연결됩니다. 사이트 구조가 바뀌면 일부 링크가 검색 첫 화면으로 열릴 수 있습니다.
