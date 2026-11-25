@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>지원용 기업 분석 워크북</title>
+<meta name="description" content="기업명만 넣으면 조사 바로가기와 분석 양식을 만들어 주는 무료 기업 분석 워크북. AI 결과를 붙여넣어 자동으로 채울 수도 있어요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800&family=Jua&display=swap" rel="stylesheet">
+<style>
+
+/* 레이아웃: 왼쪽 입력 패널(고정 폭) + 오른쪽 분석 리포트(①~⑩ 섹션). 900px 이하에서는 위아래로 쌓음 */
+:root {
+  --paper: #f3f6f3;
+  --surface: #ffffff;
+  --ink: #17231c;
+  --muted: #5a6a60;
+  --line: #d9e3dc;
+  --accent: #1b6b45;
+  --accent-soft: #e2f0e7;
+  --good: #2c8a3c;
+  --good-soft: #e5f4e2;
+  --mid: #9a6a00;
+  --mid-soft: #fbf1d9;
+  --bad: #b4441c;
+  --bad-soft: #fbe7df;
+  --font-display: "Gowun Batang", "Nanum Myeongjo", serif;
+  --font-body: "Gothic A1", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1411; --surface: #16201a; --ink: #e6eee8; --muted: #9db0a3; --line: #28372d;
+    --accent: #6fd39b; --accent-soft: #173323; --good: #9be07f; --good-soft: #1d3317;
+    --mid: #f0c25a; --mid-soft: #3a2f12; --bad: #ff9a70; --bad-soft: #3d2016; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1411; --surface: #16201a; --ink: #e6eee8; --muted: #9db0a3; --line: #28372d;
+  --accent: #6fd39b; --accent-soft: #173323; --good: #9be07f; --good-soft: #1d3317;
+  --mid: #f0c25a; --mid-soft: #3a2f12; --bad: #ff9a70; --bad-soft: #3d2016; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+.shell { max-width: 1320px; margin: 0 auto; padding: 24px 20px 56px; display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 900px) { .shell { grid-template-columns: minmax(0, 1fr); } }
+h1 { font-family: var(--font-display); font-size: 24px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+/* 입력 패널 */
+.panel { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; padding-right: 4px; min-width: 0; }
+@media (max-width: 900px) { .panel { position: static; max-height: none; overflow: visible; } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card h2 { font-family: var(--font-display); font-size: 16px; margin: 0; }
+details.card > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+details.card > summary::-webkit-details-marker { display: none; }
+details.card > summary::after { content: "펼치기"; font-size: 12px; color: var(--accent); font-weight: 600; }
+details.card[open] > summary::after { content: "접기"; }
+details.card[open] { gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+label, .lbl { font-size: 13px; font-weight: 600; }
+.req { color: var(--bad); margin-left: 2px; }
+.opt { color: var(--muted); font-weight: 400; margin-left: 4px; font-size: 12px; }
+input[type="text"], input[type="month"], textarea { font: inherit; font-size: 14px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; width: 100%; }
+textarea { resize: vertical; min-height: 56px; }
+input:focus, textarea:focus, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.list { display: flex; flex-direction: column; gap: 10px; }
+.item { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.item-head { display: flex; justify-content: space-between; align-items: center; }
+.item-head strong { font-size: 12px; color: var(--accent); }
+.lang-grid { display: grid; grid-template-columns: 1.3fr 1fr 1.1fr; gap: 6px; }
+button { font: inherit; font-size: 14px; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 7px 12px; font-weight: 500; }
+button:hover { border-color: var(--accent); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.btn-add { align-self: flex-start; border-style: dashed; color: var(--accent); border-color: var(--accent); background: var(--accent-soft); font-weight: 600; font-size: 13px; }
+.btn-del { font-size: 12px; padding: 2px 8px; color: var(--muted); }
+.btn-del:hover { color: var(--bad); border-color: var(--bad); }
+.btn-primary { background: var(--accent); color: var(--surface); border-color: var(--accent); font-weight: 700; }
+.btn-big { padding: 12px; font-size: 16px; width: 100%; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip span { display: inline-block; border: 1px solid var(--line); border-radius: 99px; padding: 3px 10px; font-size: 12px; cursor: pointer; background: var(--paper); }
+.chip input:checked + span { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.chip input:focus-visible + span { outline: 2px solid var(--accent); }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.status { font-size: 12px; color: var(--muted); }
+.status.ok { color: var(--good); }
+.status.err { color: var(--bad); }
+.rubric { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rubric td { padding: 4px 0; border-bottom: 1px solid var(--line); }
+.rubric input { width: 52px; padding: 3px 6px; text-align: right; font-variant-numeric: tabular-nums; }
+.history { display: flex; flex-direction: column; gap: 6px; max-height: 360px; overflow-y: auto; }
+.hist-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.hrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: stretch; }
+.hrow .open { text-align: left; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; font-size: 13px; padding: 7px 10px; }
+.hrow .open strong { overflow-wrap: anywhere; }
+.hrow .open .small { grid-column: 1; overflow-wrap: anywhere; }
+.hrow .open .pill { grid-row: 1 / span 2; grid-column: 2; }
+.hrow.active .open { border-color: var(--accent); background: var(--accent-soft); }
+.btn-mini { font-size: 12px; padding: 3px 9px; }
+.hrow .del { font-size: 12px; padding: 0 9px; white-space: nowrap; }
+.empty-note { font-size: 13px; color: var(--muted); margin: 0; }
+.plist { display: flex; flex-direction: column; gap: 8px; }
+.pcard { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; background: var(--paper); }
+.pcard.active { border-color: var(--accent); background: var(--accent-soft); }
+.pcard-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.pcard-top strong { font-size: 14px; overflow-wrap: anywhere; }
+.pcard dl { margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; font-size: 12px; }
+.pcard dt { color: var(--muted); }
+.pcard dd { margin: 0; overflow-wrap: anywhere; }
+.pcard .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.pcard .acts button { font-size: 12px; padding: 3px 10px; }
+.btn-danger { color: var(--bad); border-color: var(--bad); }
+.btn-danger:hover { border-color: var(--bad); }
+.btn-danger.armed { background: var(--bad); color: var(--surface); }
+.editing { font-size: 12px; font-weight: 600; color: var(--accent); }
+.editing:empty { display: none; }
+
+/* 리포트 */
+.report { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.banner { border-radius: var(--radius); padding: 10px 14px; font-size: 13px; background: var(--mid-soft); color: var(--ink); border: 1px solid var(--line); }
+.banner b { color: var(--mid); }
+.r-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.r-head h2 { font-family: var(--font-display); font-size: 26px; margin: 0; text-wrap: balance; }
+.r-meta { color: var(--muted); font-size: 13px; }
+.sec { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.sec h3 { font-family: var(--font-display); font-size: 18px; margin: 0; display: flex; gap: 8px; align-items: baseline; }
+.sec h3 .no { color: var(--accent); font-family: var(--font-body); font-weight: 700; }
+.sec p { margin: 0; max-width: 72ch; }
+.sec ul { margin: 0; padding-left: 20px; }
+.empty-steps { margin: 0; padding-left: 20px; color: var(--muted); }
+details.sec { display: block; }
+details.sec > summary, details.more > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+details.sec > summary::-webkit-details-marker, details.more > summary::-webkit-details-marker { display: none; }
+details.sec > summary::after, details.more > summary::after { content: "펼치기"; flex: none; font-size: 12px; font-weight: 700; color: var(--accent); border: 1px solid var(--accent); border-radius: 99px; padding: 2px 10px; background: var(--accent-soft); }
+details[open].sec > summary::after, details[open].more > summary::after { content: "접기"; }
+details.sec > summary:focus-visible, details.more > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+details.sec > :not(summary) { margin-top: 12px; }
+details.more { border-top: 1px dashed var(--line); padding-top: 12px; }
+details.more > summary { font-size: 13px; font-weight: 600; color: var(--muted); }
+details.more > :not(summary) { margin-top: 12px; }
+.tbl-wrap { overflow-x: auto; }
+table.t { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.t th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 6px 10px; border-bottom: 2px solid var(--line); white-space: nowrap; }
+table.t td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.t td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { display: inline-block; padding: 1px 9px; border-radius: 99px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pill.good { background: var(--good-soft); color: var(--good); }
+.pill.mid { background: var(--mid-soft); color: var(--mid); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.neutral { background: var(--accent-soft); color: var(--accent); }
+.hero { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 20px; align-items: center; }
+@media (max-width: 560px) { .hero { grid-template-columns: 1fr; } }
+.score { text-align: center; padding: 14px; border-radius: var(--radius); border: 2px solid currentColor; }
+.score .big { font-size: 48px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.score .lab { font-size: 13px; font-weight: 700; margin-top: 6px; }
+.score.good { color: var(--good); background: var(--good-soft); }
+.score.mid { color: var(--mid); background: var(--mid-soft); }
+.score.bad { color: var(--bad); background: var(--bad-soft); }
+.bars { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: grid; grid-template-columns: 110px minmax(0, 1fr) 64px; gap: 10px; align-items: center; font-size: 13px; }
+.bar { height: 8px; background: var(--paper); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.bar-row .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .two { grid-template-columns: 1fr; } }
+.box { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
+.box h4 { margin: 0 0 4px; font-size: 13px; }
+.box.good h4 { color: var(--good); }
+.box.bad h4 { color: var(--bad); }
+.kw { display: flex; flex-wrap: wrap; gap: 6px; }
+.kw span { background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 2px 10px; font-weight: 700; font-size: 14px; }
+.quote { border-left: 3px solid var(--accent); padding-left: 10px; color: var(--muted); font-size: 13px; }
+.loading { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.dots::after { content: "…"; animation: blink 1.2s steps(3) infinite; }
+@keyframes blink { 0% { opacity: .2; } 50% { opacity: 1; } 100% { opacity: .2; } }
+@media (prefers-reduced-motion: reduce) { .dots::after { animation: none; } }
+.small { font-size: 12px; color: var(--muted); }
+a.src { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+
+/* ===== 디자인 다듬기 ===== */
+:root { --shadow: 0 1px 2px rgba(20, 45, 30, .05), 0 6px 20px rgba(20, 45, 30, .06); --radius: 14px; --accent-2: #2f9e64; --deep: #0f3d28; }
+:root[data-theme="dark"] { --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25); --accent-2: #48c483; --deep: #0b2a1c; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25); --accent-2: #48c483; --deep: #0b2a1c; } }
+body { background:
+  radial-gradient(1200px 400px at 85% -100px, var(--accent-soft), transparent 70%),
+  var(--paper); background-attachment: fixed; letter-spacing: -0.005em; }
+
+.topbar { background: linear-gradient(120deg, var(--deep), #17603c 60%, #1f7a4c); color: #f1f8f3; }
+.topbar-in { max-width: 1320px; margin: 0 auto; padding: 22px 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; gap: 14px; align-items: center; min-width: 0; }
+.logo { width: 44px; height: 44px; color: rgba(255,255,255,.16); flex: none; filter: drop-shadow(0 2px 6px rgba(0,0,0,.15)); }
+.topbar h1 { color: #fff; font-size: 26px; }
+.topbar .sub { color: rgba(241,248,243,.8); font-size: 13.5px; margin-top: 2px; }
+.flow { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; flex-wrap: wrap; }
+.flow li { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-radius: 99px; padding: 4px 12px 4px 5px; }
+.flow b { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #fff; color: var(--deep); font-size: 11px; }
+.shell { padding-top: 24px; }
+
+.card, .sec { border-color: transparent; box-shadow: var(--shadow); border-radius: var(--radius); }
+.card h2 { display: flex; align-items: center; gap: 8px; }
+.card > h2::before, details.card > summary h2::before, .hist-head h2::before { content: ""; width: 4px; height: 16px; border-radius: 4px; background: linear-gradient(var(--accent-2), var(--accent)); }
+input[type="text"], input[type="month"], textarea { background: var(--surface); border-color: var(--line); border-radius: 10px; transition: border-color .15s, box-shadow .15s; }
+input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+button { border-radius: 10px; transition: transform .08s, box-shadow .15s, background .15s, border-color .15s; }
+button:active:not(:disabled) { transform: translateY(1px); }
+.btn-primary { background: linear-gradient(135deg, var(--accent-2), var(--accent)); border-color: transparent; box-shadow: 0 4px 14px rgba(27,107,69,.28); }
+.btn-primary:hover { border-color: transparent; box-shadow: 0 6px 18px rgba(27,107,69,.36); }
+.btn-big { padding: 14px; font-size: 16px; border-radius: 12px; letter-spacing: .01em; }
+.item { border-radius: 10px; border-left-width: 4px; background: var(--paper); }
+.chip span { background: var(--surface); }
+
+.hrow .open { border-radius: 10px; }
+.hrow.active .open { box-shadow: inset 0 0 0 1px var(--accent); }
+
+.banner { border: none; border-left: 4px solid var(--mid); border-radius: 10px; box-shadow: var(--shadow); background: var(--surface); }
+.r-head { padding: 4px 2px; }
+.r-title { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.avatar { width: 56px; height: 56px; flex: none; border-radius: 16px; display: grid; place-items: center; font-family: var(--font-display); font-size: 26px; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--accent-2), var(--deep)); box-shadow: 0 6px 16px rgba(27,107,69,.3); }
+.r-head h2 { font-size: 30px; line-height: 1.2; }
+
+.sec { padding: 20px 22px; }
+.sec h3 .no { display: inline-grid; place-items: center; min-width: 28px; height: 28px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); font-size: 15px; }
+.sec h3 { align-items: center; }
+details.sec[open] { box-shadow: var(--shadow), inset 0 3px 0 var(--accent); }
+details.sec > summary:hover h3 { color: var(--accent); }
+details.sec > summary::after, details.more > summary::after { transition: background .15s; }
+
+.hero { grid-template-columns: 200px minmax(0, 1fr); gap: 28px; }
+@media (max-width: 560px) { .hero { grid-template-columns: 1fr; } }
+.score { border: none; background: transparent !important; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ring-wrap { position: relative; width: 168px; height: 168px; }
+.ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 12; stroke-linecap: round; }
+.ring .track { stroke: var(--paper); }
+.score .ring .val { stroke: currentColor; transition: stroke-dashoffset .8s ease; }
+.ring-mid { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.score .big { font-size: 42px; letter-spacing: -0.03em; }
+.ring-mid .cap { font-size: 12px; color: var(--muted); font-weight: 600; }
+.score .lab { padding: 3px 14px; border-radius: 99px; font-size: 13px; margin: 0; }
+.score.good .lab { background: var(--good-soft); }
+.score.mid .lab { background: var(--mid-soft); }
+.score.bad .lab { background: var(--bad-soft); }
+.bar { height: 10px; border: none; background: var(--paper); }
+.bar i { background: linear-gradient(90deg, var(--accent-2), var(--accent)); border-radius: 99px; }
+.bar-row { grid-template-columns: 120px minmax(0, 1fr) 64px; }
+
+table.t { border-collapse: separate; border-spacing: 0; }
+table.t th { background: var(--paper); border-bottom: none; }
+table.t th:first-child { border-radius: 8px 0 0 8px; }
+table.t th:last-child { border-radius: 0 8px 8px 0; }
+table.t tbody tr:hover td { background: color-mix(in srgb, var(--accent-soft) 45%, transparent); }
+.box { border: none; background: var(--paper); border-radius: 10px; }
+.box.good { background: var(--good-soft); }
+.box.bad { background: var(--bad-soft); }
+.kw span { background: linear-gradient(135deg, var(--accent-soft), color-mix(in srgb, var(--accent-soft) 60%, var(--surface))); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); border-radius: 99px; padding: 3px 14px; }
+.quote { background: var(--paper); border-radius: 0 8px 8px 0; padding: 6px 10px; color: var(--ink); font-style: normal; }
+.empty { align-items: flex-start; padding: 36px 28px; background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 40 40'%3E%3Ccircle cx='18' cy='18' r='8' fill='none' stroke='%231b6b45' stroke-opacity='.08' stroke-width='3'/%3E%3Cpath d='M24 24l7 7' stroke='%231b6b45' stroke-opacity='.08' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 20px bottom 10px; }
+.empty h3 { font-size: 22px; }
+@media (prefers-reduced-motion: reduce) { .score .ring .val { transition: none; } button { transition: none; } }
+
+.key-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+select { font: inherit; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; width: 100%; }
+select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.check-row { display: flex; gap: 8px; align-items: center; font-weight: 500; font-size: 13px; }
+.check-row input { accent-color: var(--accent); width: 16px; height: 16px; }
+#keyBadge:empty { display: none; }
+#keyBadge { font-family: var(--font-body); }
+
+/* ===== 워크북 전용 ===== */
+.links { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.lk { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 12px; background: var(--paper); text-decoration: none; color: var(--ink); border: 1px solid transparent; transition: border-color .15s, transform .1s, box-shadow .15s; }
+.lk:hover { border-color: var(--accent); box-shadow: var(--shadow); transform: translateY(-1px); }
+.lk:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lk strong { font-size: 14px; display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+.lk strong::after { content: "↗"; color: var(--accent); font-weight: 700; }
+.lk span { font-size: 12px; color: var(--muted); }
+.lk .for { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+.lk .for i { font-style: normal; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 0 6px; }
+.ai-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 760px) { .ai-steps { grid-template-columns: 1fr; } }
+.ai-step { background: var(--paper); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.ai-step h4 { margin: 0; font-size: 14px; display: flex; gap: 8px; align-items: center; }
+.ai-step h4 b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--surface); font-size: 12px; }
+.ai-links { display: flex; flex-wrap: wrap; gap: 6px; }
+.ai-links a { font-size: 12px; font-weight: 600; color: var(--accent); background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 3px 10px; text-decoration: none; }
+.ai-links a:hover { border-color: var(--accent); }
+#pasteBox { min-height: 90px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+.optional-tag { font-size: 11px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; font-family: var(--font-body); }
+
+.progress { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.progress .bar { width: 140px; }
+.fill-pill { font-family: var(--font-body); }
+
+.rows { display: flex; flex-direction: column; gap: 10px; }
+.erow { display: grid; gap: 8px; padding: 10px; border-radius: 12px; background: var(--paper); position: relative; align-items: start; }
+.erow .f { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.erow .f > span { font-size: 11px; font-weight: 700; color: var(--muted); }
+.erow textarea { min-height: 40px; }
+.erow input, .erow textarea, .erow select { font-size: 13.5px; }
+.erow .rm { align-self: start; margin-top: 18px; font-size: 12px; padding: 5px 9px; }
+@media (max-width: 760px) { .erow { grid-template-columns: 1fr !important; } .erow .rm { margin-top: 0; justify-self: end; } }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+.hint { font-size: 12px; color: var(--muted); margin: 0; }
+.slider-row { display: grid; grid-template-columns: 120px minmax(0, 1fr) 70px; gap: 10px; align-items: center; font-size: 13px; }
+.slider-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+.slider-row .v { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.reason { margin: -4px 0 4px 130px; width: calc(100% - 130px) !important; }
+@media (max-width: 560px) { .slider-row { grid-template-columns: 1fr 60px; } .slider-row input { grid-column: 1 / -1; grid-row: 2; } .reason { margin-left: 0; width: 100% !important; } }
+.score.none { color: var(--muted); }
+.score.none .lab { background: var(--paper); }
+.saved { font-size: 12px; color: var(--muted); }
+.lbl-sm { font-size: 12px; font-weight: 700; color: var(--muted); }
+textarea.list-ta { min-height: 76px; }
+.sec input, .sec textarea, .sec select { font-weight: 400; }
+
+/* ================= 발랄 테마 ================= */
+:root {
+  --paper: #f5fbf3; --surface: #ffffff; --ink: #1c2b22; --muted: #5e6e64; --line: #dbe8df;
+  --accent: #12a05a; --accent-2: #3fd18a; --accent-soft: #dcf7e8; --deep: #0b6a3c;
+  --good: #12a05a; --good-soft: #dcf7e8;
+  --sun: #ffd43b; --sun-soft: #fff4c4; --coral: #ff6b5b; --coral-soft: #ffe4e0; --sky: #339af0; --sky-soft: #e0f0ff;
+  --pop: 3px 3px 0 #1c2b22;
+  --font-display: "Jua", "Gothic A1", sans-serif;
+  --radius: 20px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0f1712; --surface: #17221b; --ink: #eaf4ed; --muted: #a2b5a8; --line: #2a3a30;
+  --accent: #3fd18a; --accent-2: #7ce3ae; --accent-soft: #163a27; --deep: #0b3d24;
+  --good: #3fd18a; --good-soft: #163a27; --sun-soft: #3a3313; --coral-soft: #3d1f1b; --sky-soft: #132c42; --pop: 3px 3px 0 #000;
+} }
+:root[data-theme="dark"] {
+  --paper: #0f1712; --surface: #17221b; --ink: #eaf4ed; --muted: #a2b5a8; --line: #2a3a30;
+  --accent: #3fd18a; --accent-2: #7ce3ae; --accent-soft: #163a27; --deep: #0b3d24;
+  --good: #3fd18a; --good-soft: #163a27; --sun-soft: #3a3313; --coral-soft: #3d1f1b; --sky-soft: #132c42; --pop: 3px 3px 0 #000;
+}
+body {
+  background:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--accent) 18%, transparent) 1px, transparent 0) 0 0 / 22px 22px,
+    var(--paper);
+  font-weight: 500;
+}
+h1, h2, h3, .card h2, legend { font-family: var(--font-display); font-weight: 400; letter-spacing: 0; }
+
+/* 머리글 */
+.topbar { position: relative; overflow: hidden; background: linear-gradient(115deg, #0b7a43 0%, #12a05a 45%, #3fd18a 100%); }
+.topbar .deco { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.topbar-in { position: relative; padding: 30px 20px 34px; }
+.kicker { margin: 0 0 4px; display: inline-block; background: var(--sun); color: #3a2c00; font-weight: 800; font-size: 12.5px; padding: 3px 12px; border-radius: 99px; transform: rotate(-2deg); box-shadow: 2px 2px 0 rgba(0,0,0,.18); }
+.topbar h1 { font-size: 36px; line-height: 1.25; text-shadow: 0 2px 0 rgba(0,0,0,.12); }
+.topbar h1 mark { background: linear-gradient(transparent 58%, rgba(255,212,59,.9) 58%); color: inherit; padding: 0 2px; }
+.topbar .sub { color: rgba(255,255,255,.92); font-size: 14px; font-weight: 600; }
+.logo { width: 56px; height: 56px; color: rgba(255,255,255,.22); transform: rotate(-6deg); }
+.flow li { background: #fff; color: var(--deep); border: 2px solid #1c2b22; box-shadow: 2px 2px 0 #1c2b22; font-weight: 800; }
+.flow li:nth-child(2) { transform: rotate(1.5deg); }
+.flow li:nth-child(3) { background: var(--sun); color: #3a2c00; transform: rotate(-1.5deg); }
+.flow b { background: var(--accent); color: #fff; }
+
+/* 카드 · 섹션: 스티커 느낌 */
+.card, .sec { border: 2px solid var(--ink); box-shadow: var(--pop); border-radius: var(--radius); }
+.card > h2::before, details.card > summary h2::before, .hist-head h2::before { width: 10px; height: 10px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 2px var(--ink); }
+.card h2 { font-size: 19px; }
+details.card > summary::after { background: var(--accent-soft); border-radius: 99px; padding: 1px 10px; }
+
+/* 입력 */
+input[type="text"], input[type="month"], textarea, select { border: 2px solid var(--line); border-radius: 12px; background: var(--surface); }
+input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+label, .lbl { font-weight: 700; }
+
+/* 버튼 */
+button { border: 2px solid var(--ink); border-radius: 99px; font-weight: 700; box-shadow: 2px 2px 0 var(--ink); }
+button:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); border-color: var(--ink); }
+button:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+.btn-primary:hover { box-shadow: 4px 4px 0 var(--ink); border-color: var(--ink); }
+.btn-big { font-family: var(--font-display); font-weight: 400; font-size: 20px; padding: 14px; border-radius: 18px; background: linear-gradient(135deg, #12a05a, #3fd18a); }
+.btn-add { background: var(--sun-soft); color: #6b4f00; border: 2px dashed #c79a00; box-shadow: none; border-radius: 99px; }
+.btn-add:hover { box-shadow: none !important; transform: none !important; background: var(--sun); }
+.btn-del, .btn-mini, .hrow .del, .erow .rm { box-shadow: none; border-width: 1.5px; }
+.btn-danger { border-color: var(--coral); color: var(--coral); }
+.btn-danger:hover { border-color: var(--coral) !important; background: var(--coral-soft); box-shadow: none !important; }
+.btn-danger.armed { background: var(--coral); color: #fff; }
+.chip span { border: 2px solid var(--line); font-weight: 700; }
+.chip input:checked + span { background: var(--accent); color: #fff; border-color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+
+/* 목록 */
+.hrow .open { border: 2px solid var(--line); box-shadow: none; border-radius: 14px; }
+.hrow .open:hover { border-color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+.hrow.active .open { background: var(--sun-soft); border-color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+.pcard { border: 2px solid var(--line); border-radius: 14px; }
+.pcard.active { border-color: var(--ink); background: var(--accent-soft); }
+.item { border: 2px solid var(--line); border-left: 6px solid var(--accent); }
+
+/* 리포트 머리 */
+.avatar { border: 2px solid var(--ink); box-shadow: var(--pop); border-radius: 18px; background: linear-gradient(135deg, var(--sun), #ffb03b); color: #3a2c00; font-family: var(--font-display); font-weight: 400; transform: rotate(-4deg); }
+.r-head h2 { font-size: 34px; }
+.progress { background: var(--surface); border: 2px solid var(--ink); border-radius: 99px; padding: 8px 16px; box-shadow: var(--pop); flex-wrap: wrap; }
+.progress #progressText { font-family: var(--font-display); font-weight: 400; font-size: 16px; color: var(--accent); }
+.progress .bar { height: 12px; width: 160px; border: 2px solid var(--ink); background: var(--paper); }
+.progress .bar i { background: repeating-linear-gradient(45deg, var(--accent) 0 8px, var(--accent-2) 8px 16px); transition: width .4s ease; }
+.cheer { font-weight: 800; color: var(--ink); font-size: 13px; }
+.saved { margin-left: auto; }
+
+/* 섹션 번호를 알록달록하게 */
+.sec h3 { font-size: 20px; }
+.sec h3 .no { border: 2px solid var(--ink); border-radius: 50%; min-width: 32px; height: 32px; font-family: var(--font-display); font-weight: 400; font-size: 16px; background: var(--accent-soft); color: var(--deep); }
+#report > .sec:nth-of-type(4n+1) h3 .no { background: var(--sun); color: #3a2c00; }
+#report > .sec:nth-of-type(4n+2) h3 .no { background: var(--accent-2); color: #08381f; }
+#report > .sec:nth-of-type(4n+3) h3 .no { background: #ffb3a8; color: #5a120a; }
+#report > .sec:nth-of-type(4n) h3 .no { background: #a5d8ff; color: #0b3558; }
+details.sec[open] { box-shadow: var(--pop); }
+details.sec > summary::after, details.more > summary::after { border: 2px solid var(--ink); background: var(--surface); color: var(--ink); }
+details[open].sec > summary::after { background: var(--sun); }
+.fill-pill.good { background: var(--accent); color: #fff; }
+.fill-pill.good::before { content: "✓ "; }
+
+/* 바로가기 카드 */
+.lk { background: var(--surface); border: 2px solid var(--line); border-radius: 16px; }
+.lk:hover { border-color: var(--ink); box-shadow: 3px 3px 0 var(--ink); transform: translate(-2px, -2px); }
+.lk:nth-child(4n+1) { background: var(--accent-soft); }
+.lk:nth-child(4n+2) { background: var(--sun-soft); }
+.lk:nth-child(4n+3) { background: var(--coral-soft); }
+.lk:nth-child(4n) { background: var(--sky-soft); }
+.lk strong { font-weight: 800; }
+.lk strong::after { content: "→"; background: var(--surface); border: 2px solid var(--ink); border-radius: 50%; width: 24px; height: 24px; display: inline-grid; place-items: center; font-size: 12px; color: var(--ink); flex: none; }
+.lk .for i { background: var(--surface); border: 1.5px solid var(--ink); color: var(--ink); border-radius: 99px; }
+
+/* AI 카드 */
+.ai-step { background: var(--paper); border: 2px dashed var(--line); border-radius: 16px; }
+.ai-step h4 b { background: var(--sun); color: #3a2c00; border: 2px solid var(--ink); }
+.ai-links a { border: 2px solid var(--ink); color: var(--ink); font-weight: 700; }
+.ai-links a:hover { background: var(--sun); }
+.optional-tag { border: 2px solid var(--ink); background: var(--sky-soft); color: var(--ink); }
+
+/* 점수 */
+.ring .track { stroke: var(--paper); }
+.ring circle { stroke-width: 14; }
+.score .big { font-family: var(--font-display); font-weight: 400; font-size: 46px; }
+.score .lab { border: 2px solid var(--ink); font-weight: 800; box-shadow: 2px 2px 0 var(--ink); }
+.score.good .lab { background: var(--accent); color: #fff; }
+.score.mid .lab { background: var(--sun); color: #3a2c00; }
+.score.bad .lab { background: var(--coral); color: #fff; }
+.score.none .lab { background: var(--surface); color: var(--muted); }
+.slider-row input[type="range"] { accent-color: var(--accent); height: 22px; }
+.slider-row .v { font-family: var(--font-display); font-weight: 400; font-size: 16px; color: var(--accent); }
+
+/* 표 · 행 */
+.erow { background: var(--paper); border: 2px solid var(--line); border-radius: 16px; }
+.erow:focus-within { border-color: var(--accent); }
+.box { border: 2px solid var(--line); }
+
+/* 빈 화면 */
+.empty { align-items: center; text-align: center; padding: 40px 28px; background: var(--surface); }
+.empty-art svg { width: 220px; height: auto; }
+.empty h3 { font-size: 26px; }
+.empty p { margin: 0 auto; }
+.empty-steps { text-align: left; display: inline-block; margin-top: 8px; }
+.empty-steps li { margin: 4px 0; font-weight: 600; }
+.empty-steps li::marker { color: var(--accent); font-weight: 800; }
+
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+.status.ok { color: var(--accent); font-weight: 700; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <svg class="deco" viewBox="0 0 1200 200" preserveAspectRatio="none" aria-hidden="true">
+    <circle cx="1080" cy="30" r="90" fill="#ffd43b" opacity=".9"/>
+    <circle cx="960" cy="190" r="60" fill="#ffffff" opacity=".14"/>
+    <circle cx="80" cy="200" r="70" fill="#ffffff" opacity=".1"/>
+    <path d="M700 40l6 14 14 6-14 6-6 14-6-14-14-6 14-6z" fill="#fff" opacity=".85"/>
+    <path d="M820 120l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#ffd43b"/>
+    <path d="M560 150l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#fff" opacity=".7"/>
+  </svg>
+  <div class="topbar-in">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="1" y="1" width="38" height="38" rx="11" fill="currentColor"/>
+        <circle cx="18" cy="18" r="8" fill="none" stroke="#fff" stroke-width="3"/>
+        <path d="M24 24l7 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>
+        <path d="M14.5 18.5l2.5 2.5 4.5-5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <p class="kicker">오늘도 한 걸음, 합격에 가까워지는 중</p>
+        <h1>지원용 <mark>기업 분석</mark> 워크북</h1>
+        <p class="sub">기업명만 넣으면 조사할 곳과 분석 양식이 바로 준비돼요. 가입도, API 키도, 비용도 0원!</p>
+      </div>
+    </div>
+    <ol class="flow" aria-label="사용 순서">
+      <li><b>1</b>기업 입력</li>
+      <li><b>2</b>바로가기로 조사</li>
+      <li><b>3</b>양식 채우고 합격 키워드 GET</li>
+    </ol>
+  </div>
+</header>
+
+<div class="shell">
+
+<form class="panel" id="form" autocomplete="off">
+  <div class="card">
+    <div class="hist-head">
+      <h2>분석한 기업 목록 <span class="small" id="histCount"></span></h2>
+      <button type="button" class="btn-mini btn-danger" id="clearHist" hidden>전체 삭제</button>
+    </div>
+    <div class="history" id="history"></div>
+  </div>
+
+  <div class="card">
+    <h2>분석할 기업</h2>
+    <div class="field">
+      <label for="company">기업명<span class="req">*</span></label>
+      <input type="text" id="company" placeholder="예: 네이버">
+    </div>
+    <div class="field">
+      <label for="role">지원 직무<span class="opt">선택</span></label>
+      <input type="text" id="role" placeholder="예: 데이터 분석가 (신입)">
+    </div>
+    <div class="field">
+      <label for="posting">채용공고 본문<span class="opt">선택 · AI 부탁서에 함께 들어가요</span></label>
+      <textarea id="posting" placeholder="공고 내용을 복사해 붙여넣으세요"></textarea>
+    </div>
+    <div class="field">
+      <label for="questions">자기소개서 문항<span class="opt">선택 · 한 줄에 하나</span></label>
+      <textarea id="questions" placeholder="예: 지원 동기와 입사 후 포부 (700자)"></textarea>
+    </div>
+  </div>
+
+  <details class="card" id="profileCard">
+    <summary><h2>내 프로필</h2></summary>
+    <div class="field">
+      <span class="lbl">저장된 프로필</span>
+      <div class="plist" id="profileList"></div>
+    </div>
+    <div class="editing" id="editingNote"></div>
+    <div class="field">
+      <label for="pname">프로필 이름<span class="opt">예: 데이터 직무용</span></label>
+      <input type="text" id="pname" placeholder="예: 데이터 직무용">
+    </div>
+    <div class="row2">
+      <div class="field"><label for="major">학교 · 전공</label><input type="text" id="major" placeholder="예: 평택대 데이터정보학과"></div>
+      <div class="field"><label for="grad">졸업 (예정)</label><input type="month" id="grad"></div>
+    </div>
+    <div class="field">
+      <span class="lbl">핵심 경험<span class="opt">개수 제한 없음</span></span>
+      <div class="list" id="expList"></div>
+      <button type="button" class="btn-add" id="addExp">+ 경험 추가</button>
+    </div>
+    <div class="field">
+      <label for="certs">자격증<span class="opt">한 줄에 하나</span></label>
+      <textarea id="certs" placeholder="예: ADsP (2025.06)"></textarea>
+    </div>
+    <div class="field">
+      <span class="lbl">어학</span>
+      <div class="list" id="langList"></div>
+      <button type="button" class="btn-add" id="addLang">+ 어학 추가</button>
+    </div>
+    <div class="field">
+      <span class="lbl">취업 기준</span>
+      <div class="chips" id="criteria"></div>
+      <input type="text" id="criteriaEtc" placeholder="기타 (예: 경기 남부 근무)">
+    </div>
+    <div class="toolbar">
+      <button type="button" class="btn-primary" id="saveProfile">프로필 저장</button>
+      <button type="button" id="newProfile">새 프로필</button>
+      <span class="status" id="saveStatus" role="status"></span>
+    </div>
+  </details>
+
+  <details class="card">
+    <summary><h2>추천도 채점 기준</h2></summary>
+    <table class="rubric"><tbody id="rubricBody"></tbody></table>
+    <div class="status" id="rubricTotal"></div>
+  </details>
+
+  <button type="submit" class="btn-primary btn-big" id="runBtn">분석 워크북 만들기 →</button>
+  <span class="status" id="runStatus" role="status"></span>
+</form>
+
+<main class="report" id="report" aria-live="polite"></main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  /* ================= 기본 설정 ================= */
+  const HISTORY_KEY = "wb-history-v1";
+  const PROFILES_KEY = "wb-profiles-v1";
+  const ACTIVE_KEY = "wb-active-profile-v1";
+  const CRITERIA = ["성장 가능성", "직무 전문성", "근무지", "연봉·복지", "워라밸", "고용 안정성", "기업 문화", "회사 규모·인지도"];
+  const RUBRIC = [
+    { name: "직무 적합도", w: 40, desc: "요구 역량·자격 중 내가 갖춘 비율" },
+    { name: "경험 연결도", w: 30, desc: "연결표에서 연결이 강한 항목 수" },
+    { name: "취업 기준 부합도", w: 20, desc: "내 취업 기준과 맞는 정도" },
+    { name: "기업 전망", w: 10, desc: "실적 추이, 신사업, 최근 이슈" }
+  ];
+  const $ = (id) => document.getElementById(id);
+  const arr = (x) => (Array.isArray(x) ? x : []);
+  const s = (x) => (x === undefined || x === null ? "" : String(x));
+  const lines = (t) => s(t).split("\n").map((x) => x.trim()).filter(Boolean);
+  const ym = (t) => (t ? s(t).replace("-", ".") : "");
+  const val = (id) => $(id).value.trim();
+  const today = () => new Date().toISOString().slice(0, 10);
+  function h(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined && text !== null) e.textContent = String(text);
+    return e;
+  }
+  function btn(text, cls) { const b = h("button", cls || "", text); b.type = "button"; return b; }
+  function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+  function load(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
+  function flash(el, msg, kind) { el.textContent = msg; el.className = "status " + (kind || ""); }
+  function armDelete(b, label, onConfirm) {
+    let armed = false, t = null;
+    b.addEventListener("click", () => {
+      if (!armed) {
+        armed = true; b.classList.add("armed"); b.textContent = "한 번 더";
+        t = setTimeout(() => { armed = false; b.classList.remove("armed"); b.textContent = label; }, 3000);
+        return;
+      }
+      clearTimeout(t); armed = false; b.classList.remove("armed"); b.textContent = label; onConfirm();
+    });
+  }
+  async function copyText(text, statusEl) {
+    try { await navigator.clipboard.writeText(text); flash(statusEl, "복사했어요", "ok"); return true; }
+    catch (e) {
+      const ta = h("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      let ok = false; try { ok = document.execCommand("copy"); } catch (e2) {}
+      ta.remove();
+      flash(statusEl, ok ? "복사했어요" : "복사가 막혔어요. 직접 선택해서 복사해 주세요", ok ? "ok" : "err");
+      return ok;
+    }
+  }
+
+  /* ================= 프로필 입력 ================= */
+  let seq = 0;
+  CRITERIA.forEach((c, i) => {
+    const l = h("label", "chip");
+    const inp = document.createElement("input");
+    inp.type = "checkbox"; inp.id = "crit" + i; inp.value = c;
+    l.append(inp, h("span", "", c));
+    $("criteria").appendChild(l);
+  });
+  RUBRIC.forEach((r, i) => {
+    const tr = document.createElement("tr");
+    const td1 = h("td", "", r.name); td1.appendChild(h("div", "small", r.desc));
+    const td2 = document.createElement("td"); td2.style.textAlign = "right";
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.inputMode = "numeric"; inp.id = "w" + i; inp.value = r.w; inp.setAttribute("aria-label", r.name + " 비중");
+    td2.appendChild(inp); tr.append(td1, td2); $("rubricBody").appendChild(tr);
+  });
+  function addExp(d) {
+    d = d || {}; const n = ++seq;
+    const box = h("div", "item exp");
+    const head = h("div", "item-head"); const del = btn("삭제", "btn-del");
+    head.append(h("strong", "", "경험"), del); box.appendChild(head);
+    [["title", "경험 이름 (예: 축제 설문 분석 프로젝트)", "input"], ["sit", "상황: 어떤 문제나 목표가 있었나요?", "textarea"], ["role", "내 역할: 내가 직접 한 일은?", "textarea"], ["res", "결과: 숫자로 말할 수 있으면 좋아요", "textarea"]].forEach(([k, ph, tag]) => {
+      const el = document.createElement(tag);
+      if (tag === "input") el.type = "text"; else el.rows = 2;
+      el.id = "exp" + k + n; el.dataset.k = k; el.placeholder = ph; el.value = d[k] || ""; el.setAttribute("aria-label", ph.split(":")[0]);
+      box.appendChild(el);
+    });
+    del.addEventListener("click", () => { box.remove(); renumber(); });
+    $("expList").appendChild(box); renumber();
+  }
+  function addLang(d) {
+    d = d || {}; const n = ++seq;
+    const box = h("div", "item lang");
+    const head = h("div", "item-head"); const del = btn("삭제", "btn-del");
+    head.append(h("strong", "", "어학"), del);
+    const g = h("div", "lang-grid");
+    [["name", "시험명", "text"], ["score", "점수·등급", "text"], ["date", "취득일", "month"]].forEach(([k, ph, t]) => {
+      const el = document.createElement("input");
+      el.type = t; el.id = "lang" + k + n; el.dataset.k = k; el.placeholder = ph; el.value = d[k] || ""; el.setAttribute("aria-label", ph);
+      g.appendChild(el);
+    });
+    box.append(head, g); del.addEventListener("click", () => box.remove());
+    $("langList").appendChild(box);
+  }
+  function renumber() { document.querySelectorAll("#expList .exp").forEach((b, i) => { b.querySelector("strong").textContent = "경험 " + (i + 1); }); }
+  function collect(sel) { return [...document.querySelectorAll(sel)].map((b) => { const o = {}; b.querySelectorAll("[data-k]").forEach((el) => { o[el.dataset.k] = el.value.trim(); }); return o; }); }
+  function readProfile() {
+    return {
+      major: val("major"), grad: $("grad").value, exps: collect("#expList .exp"), certs: $("certs").value, langs: collect("#langList .lang"),
+      criteria: CRITERIA.filter((c, i) => $("crit" + i).checked), criteriaEtc: val("criteriaEtc"),
+      rubric: RUBRIC.map((r, i) => parseInt($("w" + i).value, 10) || 0)
+    };
+  }
+  function applyProfile(p) {
+    $("major").value = p.major || ""; $("grad").value = p.grad || "";
+    $("expList").innerHTML = ""; (arr(p.exps).length ? p.exps : [{}, {}]).forEach(addExp);
+    $("certs").value = p.certs || "";
+    $("langList").innerHTML = ""; (arr(p.langs).length ? p.langs : [{}]).forEach(addLang);
+    CRITERIA.forEach((c, i) => { $("crit" + i).checked = arr(p.criteria).includes(c); });
+    $("criteriaEtc").value = p.criteriaEtc || "";
+    RUBRIC.forEach((r, i) => { $("w" + i).value = arr(p.rubric)[i] != null ? p.rubric[i] : r.w; });
+    updateTotal();
+  }
+  function updateTotal() {
+    const t = RUBRIC.reduce((a, r, i) => a + (parseInt($("w" + i).value, 10) || 0), 0);
+    $("rubricTotal").textContent = "합계 " + t + "점" + (t === 100 ? "" : " · 100점이 되도록 맞춰 주세요");
+    $("rubricTotal").className = "status" + (t === 100 ? " ok" : " err");
+    return t;
+  }
+  $("rubricBody").addEventListener("input", updateTotal);
+  $("addExp").addEventListener("click", () => { addExp(); document.querySelector("#expList .exp:last-child input").focus(); });
+  $("addLang").addEventListener("click", () => addLang());
+
+  /* ================= 프로필 관리 ================= */
+  let editingId = null;
+  const getProfiles = () => arr(load(PROFILES_KEY, []));
+  const setProfiles = (l) => store(PROFILES_KEY, l);
+  const fmtDate = (ts) => { const d = new Date(ts); return d.getFullYear() + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + String(d.getDate()).padStart(2, "0"); };
+  function setEditing(id) {
+    editingId = id; store(ACTIVE_KEY, id);
+    const pr = getProfiles().find((x) => x.id === id);
+    $("editingNote").textContent = pr ? "‘" + pr.name + "’ 프로필을 사용 · 수정 중이에요. 고친 뒤 저장하면 덮어써요." : "새 프로필을 작성 중이에요.";
+    $("saveProfile").textContent = pr ? "변경 내용 저장" : "프로필 저장";
+    renderProfiles();
+  }
+  function renderProfiles() {
+    const box = $("profileList"); box.innerHTML = "";
+    const list = getProfiles();
+    if (!list.length) { box.appendChild(h("p", "empty-note", "아직 저장한 프로필이 없어요. 아래를 채우고 [프로필 저장]을 누르세요.")); return; }
+    list.forEach((pr) => {
+      const d = pr.data || {};
+      const card = h("div", "pcard" + (pr.id === editingId ? " active" : ""));
+      const top = h("div", "pcard-top");
+      top.append(h("strong", "", pr.name), pr.id === editingId ? h("span", "pill neutral", "사용 중") : h("span", "small", fmtDate(pr.updated) + " 저장"));
+      const dl = document.createElement("dl");
+      const exps = arr(d.exps).filter((e) => e.title || e.res);
+      const langs = arr(d.langs).filter((l) => l.name);
+      [["전공", [d.major, d.grad ? ym(d.grad) + " 졸업" : ""].filter(Boolean).join(" · ") || "-"],
+       ["경험", exps.length ? exps.length + "개 · " + exps.map((e) => e.title || "이름 없음").join(", ") : "-"],
+       ["자격증", lines(d.certs).join(", ") || "-"],
+       ["어학", langs.map((l) => [l.name, l.score].filter(Boolean).join(" ")).join(", ") || "-"],
+       ["취업 기준", arr(d.criteria).concat(d.criteriaEtc ? [d.criteriaEtc] : []).join(", ") || "-"]
+      ].forEach(([k, v]) => dl.append(h("dt", "", k), h("dd", "", v)));
+      const acts = h("div", "acts");
+      const edit = btn(pr.id === editingId ? "다시 불러오기" : "불러와서 수정");
+      edit.addEventListener("click", () => { applyProfile(pr.data || {}); $("pname").value = pr.name; setEditing(pr.id); flash($("saveStatus"), "‘" + pr.name + "’ 프로필을 불러왔어요", "ok"); });
+      const del = btn("삭제", "btn-danger");
+      armDelete(del, "삭제", () => {
+        setProfiles(getProfiles().filter((x) => x.id !== pr.id));
+        if (editingId === pr.id) { applyProfile({}); $("pname").value = ""; setEditing(null); } else renderProfiles();
+        flash($("saveStatus"), "‘" + pr.name + "’ 프로필을 삭제했어요", "ok");
+      });
+      acts.append(edit, del); card.append(top, dl, acts); box.appendChild(card);
+    });
+  }
+  $("saveProfile").addEventListener("click", () => {
+    const list = getProfiles();
+    let name = val("pname");
+    if (!name) { name = "내 프로필 " + (list.length + 1); $("pname").value = name; }
+    const cur = list.find((x) => x.id === editingId);
+    let id;
+    if (cur) { cur.name = name; cur.data = readProfile(); cur.updated = Date.now(); id = cur.id; }
+    else { id = "p" + Date.now(); list.push({ id, name, data: readProfile(), updated: Date.now() }); }
+    if (!setProfiles(list)) { flash($("saveStatus"), "이 브라우저에서는 저장할 수 없어요", "err"); return; }
+    setEditing(id); flash($("saveStatus"), "‘" + name + "’ 프로필을 " + (cur ? "수정했어요" : "만들었어요"), "ok");
+    if (current) renderWorkbook();
+  });
+  $("newProfile").addEventListener("click", () => { applyProfile({}); $("pname").value = ""; setEditing(null); flash($("saveStatus"), "빈 양식이에요. 채운 뒤 저장하세요", ""); });
+
+  /* ================= 데이터 · 점수 ================= */
+  function blankReport() {
+    return {
+      overview: [], scores: RUBRIC.map((r) => ({ item: r.name, got: 0, reason: "" })), pros: [], cons: [],
+      basic: { industry: "", size: "", financials: [], affiliates: [], source: "", conf: "" },
+      business: [], news: [], newBiz: [],
+      talent: { values: [], phrases: [], source: "", conf: "" },
+      job: { name: "", tasks: [], skills: [], preferred: [], tools: [] },
+      match: [], keywords: [], interview: { questions: [], ask: [] }, gaps: [], verify: []
+    };
+  }
+  function normalize(r) {
+    const b = blankReport();
+    r = r && typeof r === "object" ? r : {};
+    const out = Object.assign(b, r);
+    out.basic = Object.assign(blankReport().basic, r.basic || {});
+    out.talent = Object.assign(blankReport().talent, r.talent || {});
+    out.job = Object.assign(blankReport().job, r.job || {});
+    out.interview = Object.assign(blankReport().interview, r.interview || {});
+    out.scores = RUBRIC.map((rb, i) => {
+      const f = arr(r.scores).find((x) => s(x && x.item).replace(/\s/g, "") === rb.name.replace(/\s/g, "")) || arr(r.scores)[i] || {};
+      return { item: rb.name, got: Number(f.got) || 0, reason: s(f.reason) };
+    });
+    ["overview", "pros", "cons", "business", "news", "newBiz", "match", "keywords", "gaps", "verify"].forEach((k) => { out[k] = arr(out[k]); });
+    return out;
+  }
+  function computeScore(rep, weights) {
+    const rows = RUBRIC.map((r, i) => {
+      const f = arr(rep.scores)[i] || {};
+      const w = weights[i];
+      let got = Number(f.got); if (!isFinite(got)) got = 0;
+      got = Math.max(0, Math.min(w, Math.round(got)));
+      return { name: r.name, w, got, reason: s(f.reason) };
+    });
+    const totalW = weights.reduce((a, b) => a + b, 0) || 1;
+    const sum = rows.reduce((a, r) => a + r.got, 0);
+    return { rows, pct: Math.round(sum / totalW * 100), scored: sum > 0 };
+  }
+  function band(pct, scored) {
+    if (!scored) return { cls: "none", label: "채점 전" };
+    if (pct >= 80) return { cls: "good", label: "적극 지원" };
+    if (pct >= 60) return { cls: "mid", label: "조건부 · 보완 후 지원" };
+    return { cls: "bad", label: "신중 검토" };
+  }
+  const filled = {
+    1: (r) => r.overview.length > 0 || computeScore(r, [1, 1, 1, 1]).scored,
+    2: (r) => !!(r.basic.industry || r.basic.size || r.basic.financials.length),
+    3: (r) => r.business.length > 0,
+    4: (r) => r.news.length > 0,
+    5: (r) => r.talent.values.length > 0 || r.talent.phrases.length > 0,
+    6: (r) => !!(r.job.tasks.length || r.job.skills.length),
+    7: (r) => r.match.length > 0,
+    8: (r) => r.keywords.length > 0,
+    9: (r) => r.interview.questions.length > 0,
+    10: (r) => r.gaps.length > 0
+  };
+
+  /* ================= 분석 목록 ================= */
+  let current = null; // 지금 열린 분석
+  const getHistory = () => arr(load(HISTORY_KEY, []));
+  let saveTimer = null;
+  function saveCurrent(immediate) {
+    if (!current) return;
+    current.updated = Date.now();
+    const doSave = () => {
+      const list = getHistory();
+      const i = list.findIndex((x) => x.id === current.id);
+      if (i >= 0) list[i] = current; else list.unshift(current);
+      const ok = store(HISTORY_KEY, list);
+      const st = $("savedNote");
+      if (st) st.textContent = ok ? "자동 저장됨 · " + new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }) : "저장 실패 (브라우저 저장 공간 확인)";
+      renderHistory();
+      updateProgress();
+    };
+    clearTimeout(saveTimer);
+    if (immediate) doSave(); else saveTimer = setTimeout(doSave, 400);
+  }
+  function renderHistory() {
+    const list = getHistory();
+    const box = $("history"); box.innerHTML = "";
+    $("histCount").textContent = list.length ? "(" + list.length + ")" : "";
+    $("clearHist").hidden = list.length < 2;
+    if (!list.length) { box.appendChild(h("p", "empty-note", "아직 분석한 기업이 없어요. 기업을 추가할 때마다 여기에 쌓여요.")); return; }
+    list.forEach((e) => {
+      const rep = normalize(e.report);
+      const sc = computeScore(rep, e.weights);
+      const b = band(sc.pct, sc.scored);
+      const done = Object.values(filled).filter((f) => f(rep)).length;
+      const row = h("div", "hrow" + (current && e.id === current.id ? " active" : ""));
+      const open = btn("", "open");
+      open.append(h("strong", "", e.company), h("span", "pill " + (sc.scored ? b.cls : "neutral"), sc.scored ? sc.pct + "%" : done + "/10"), h("span", "small", e.role + " · " + e.date));
+      open.setAttribute("aria-label", e.company + " 열기");
+      open.addEventListener("click", () => { openEntry(e.id); window.scrollTo({ top: 0 }); });
+      const del = btn("삭제", "del btn-danger");
+      del.setAttribute("aria-label", e.company + " 삭제");
+      armDelete(del, "삭제", () => {
+        const rest = getHistory().filter((x) => x.id !== e.id);
+        store(HISTORY_KEY, rest);
+        flash($("runStatus"), "‘" + e.company + "’ 분석을 삭제했어요", "ok");
+        if (current && current.id === e.id) { current = null; rest.length ? openEntry(rest[0].id) : renderEmpty(); }
+        renderHistory();
+      });
+      row.append(open, del); box.appendChild(row);
+    });
+  }
+  armDelete($("clearHist"), "전체 삭제", () => { store(HISTORY_KEY, []); current = null; renderEmpty(); renderHistory(); flash($("runStatus"), "분석 목록을 모두 지웠어요", "ok"); });
+  function openEntry(id) {
+    const e = getHistory().find((x) => x.id === id);
+    if (!e) return;
+    e.report = normalize(e.report);
+    current = e;
+    renderWorkbook();
+    renderHistory();
+  }
+
+  /* ================= 새 분석 만들기 ================= */
+  $("form").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const company = val("company"), role = val("role") || "직무 미지정";
+    $("company").style.borderColor = company ? "" : "var(--bad)";
+    if (!company) { flash($("runStatus"), "기업명을 입력해 주세요", "err"); $("company").focus(); return; }
+    if (updateTotal() !== 100) { flash($("runStatus"), "채점 기준 합계를 100점으로 맞춰 주세요", "err"); return; }
+    const inputs = { posting: val("posting"), questions: $("questions").value };
+    const ex = getHistory().find((x) => x.company === company && x.role === role);
+    if (ex) {
+      if (inputs.posting) ex.inputs = Object.assign({}, ex.inputs, { posting: inputs.posting });
+      if (lines(inputs.questions).length) ex.inputs = Object.assign({}, ex.inputs, { questions: inputs.questions });
+      current = ex; current.report = normalize(ex.report); saveCurrent(true);
+      openEntry(ex.id);
+      flash($("runStatus"), "이미 있는 ‘" + company + "’ 워크북을 열었어요", "ok");
+    } else {
+      current = { id: Date.now(), company, role, date: today(), weights: readProfile().rubric, inputs, report: blankReport() };
+      saveCurrent(true);
+      renderWorkbook();
+      flash($("runStatus"), "‘" + company + "’ 워크북을 만들었어요. 오른쪽 바로가기로 조사를 시작하세요", "ok");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  /* ================= 조사 바로가기 ================= */
+  function researchLinks(company, role) {
+    const q = encodeURIComponent;
+    const naver = (t) => "https://search.naver.com/search.naver?query=" + q(t);
+    const google = (t) => "https://www.google.com/search?q=" + q(t);
+    return [
+      { name: "회사 홈페이지 · 채용 페이지", desc: "인재상, 핵심가치, 사업 소개", url: google(company + " 공식 홈페이지 채용 인재상"), for: ["⑤", "③"] },
+      { name: "DART 전자공시", desc: "사업보고서: 매출·영업이익·사업부 비중", url: "https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=" + q(company), for: ["②", "③"] },
+      { name: "네이버 뉴스 (최신순)", desc: "최근 6개월 동향, 신사업", url: "https://search.naver.com/search.naver?where=news&sort=1&query=" + q(company), for: ["④"] },
+      { name: "인재상 · CEO 메시지", desc: "신년사, 인터뷰에서 반복되는 표현", url: naver(company + " 인재상 핵심가치"), for: ["⑤", "⑧"] },
+      { name: "사람인 채용공고", desc: "현재 공고, 자격 요건, 우대 사항", url: "https://www.saramin.co.kr/zf_user/search?searchword=" + q(company), for: ["⑥"] },
+      { name: "잡코리아 채용공고", desc: "직무 설명, 합격 자소서", url: "https://www.jobkorea.co.kr/Search/?stext=" + q(company), for: ["⑥", "⑧"] },
+      { name: "원티드", desc: "IT·스타트업 직무 상세", url: "https://www.wanted.co.kr/search?query=" + q(company), for: ["⑥"] },
+      { name: "잡플래닛 리뷰", desc: "조직문화, 장단점, 면접 후기", url: "https://www.jobplanet.co.kr/search?query=" + q(company), for: ["⑤", "⑨"] },
+      { name: "면접 후기 · 기출 질문", desc: "실제 면접 질문 모음", url: google(company + (role && role !== "직무 미지정" ? " " + role : "") + " 면접 후기 질문"), for: ["⑨"] },
+      { name: "직무 상세 검색", desc: "이 직무가 실제로 하는 일", url: google(company + " " + (role && role !== "직무 미지정" ? role : "신입") + " 직무 소개 하는 일"), for: ["⑥", "⑦"] }
+    ];
+  }
+
+  /* ================= AI 부탁서 ================= */
+  function activeProfile() { const pr = getProfiles().find((x) => x.id === editingId); return pr ? pr.data : readProfile(); }
+  function buildPrompt(entry) {
+    const p = activeProfile() || {};
+    const exps = arr(p.exps).filter((e) => e.title || e.sit || e.role || e.res);
+    const langs = arr(p.langs).filter((l) => l.name || l.score);
+    const crit = arr(p.criteria).concat(p.criteriaEtc ? [p.criteriaEtc] : []);
+    const inp = entry.inputs || {};
+    const qs = lines(inp.questions);
+    const w = entry.weights;
+    return [
+      "[역할] 너는 신입 채용 전문 취업 컨설턴트이자 기업 리서처야.",
+      "[목적] 내가 지원할지 판단하고, 자기소개서와 면접을 준비할 수 있도록 아래 기업을 분석해줘.",
+      "오늘 날짜: " + today(),
+      "",
+      "[이번 입력]",
+      "- 기업명: " + entry.company,
+      "- 지원 직무: " + (entry.role !== "직무 미지정" ? entry.role : "미정 (이 회사의 대표적인 신입 채용 직무 중 내 프로필과 가장 잘 맞는 것을 골라 job.name에 적고 분석해줘)"),
+      "- 채용공고: " + (inp.posting ? "\n" + s(inp.posting).slice(0, 12000) : "없음 (웹 검색으로 최근 공고를 찾아 참고해)"),
+      "- 자기소개서 문항: " + (qs.length ? qs.map((x, i) => (i + 1) + ". " + x).join(" / ") : "없음 (지원 동기·직무 역량 문항 기준)"),
+      "",
+      "[내 프로필]",
+      "- 학교/전공: " + (p.major || "-") + " / 졸업(예정): " + (ym(p.grad) || "-"),
+      "- 핵심 경험:" + (exps.length ? "\n" + exps.map((e, i) => "  " + (i + 1) + ") " + (e.title || "(이름 없음)") + " | 상황: " + (e.sit || "-") + " | 역할: " + (e.role || "-") + " | 결과: " + (e.res || "-")).join("\n") : " 없음"),
+      "- 자격증: " + (lines(p.certs).join(", ") || "없음"),
+      "- 어학: " + (langs.map((l) => [l.name, l.score, l.date ? "취득 " + ym(l.date) : ""].filter(Boolean).join(" ")).join(", ") || "없음"),
+      "- 취업 기준: " + (crit.join(", ") || "-"),
+      "",
+      "[추천도 채점 기준] 항목별로 0~배점 사이 점수를 매겨:",
+      RUBRIC.map((r, i) => "- " + r.name + " (배점 " + w[i] + "): " + r.desc).join("\n"),
+      "",
+      "[조사 방법] 웹 검색을 할 수 있다면 꼭 사용해. 우선순위: 회사 공식 홈페이지·채용 페이지 → DART 공시·IR → 주요 언론 기사(최근 6개월) → 채용공고.",
+      "",
+      "[규칙]",
+      "- 채용공고가 주어지면 그것을 가장 우선해.",
+      "- source에는 실제로 확인한 페이지 URL(https://로 시작)을 넣어. 확인 못 했으면 URL을 지어내지 말고 '확인 필요'라고 적어.",
+      "- conf는 '높음'(공식·공시 확인) / '보통'(언론 확인) / '확인 필요' 중 하나.",
+      "- 모르면 '확인 불가', 추측은 문장 끝에 '(추정)'.",
+      "- 재무 수치는 기준 연도를 반드시 적어.",
+      "- 내 프로필에 없는 경험은 만들지 마. 연결이 약하면 strength를 '약'으로.",
+      "- 키워드는 일반론이 아니라 그 회사가 실제로 쓰는 표현으로.",
+      "- 다른 회사 이름을 넣어도 말이 되는 문장은 피하고, 이 회사만의 내용을 우선.",
+      "- 각 문자열은 한두 문장으로 간결하게, 장단점은 솔직하게.",
+      "",
+      "[출력 형식] 설명 없이 아래 구조의 JSON을 ```json 코드 블록 하나로만 답해. 모든 값은 한국어.",
+      "```json",
+      JSON.stringify({
+        overview: ["기업 개요 3문장"],
+        scores: [{ item: "직무 적합도", got: 30, reason: "근거" }],
+        pros: ["장점"], cons: ["걸리는 점"],
+        basic: { industry: "업종", size: "규모(기준 연도)", financials: [{ year: "2025", revenue: "매출", op: "영업이익" }], affiliates: ["주요 계열사"], source: "https://...", conf: "높음" },
+        business: [{ name: "사업부", desc: "설명", share: "매출 비중", products: "주력 제품·서비스" }],
+        news: [{ date: "YYYY-MM", title: "제목", summary: "요약", source: "https://...", conf: "보통" }],
+        newBiz: ["새로 추진하는 사업"],
+        talent: { values: [{ keyword: "인재상 표현", meaning: "의미" }], phrases: ["반복 강조 표현"], source: "https://...", conf: "높음" },
+        job: { name: "분석한 직무명", tasks: ["하는 일"], skills: ["요구 역량"], preferred: ["우대 사항"], tools: ["쓰는 기술"] },
+        match: [{ need: "회사가 원하는 것", evidence: "근거", exp: "연결되는 내 경험", point: "자소서 활용 포인트", strength: "강" }],
+        keywords: [{ keyword: "키워드", why: "넣어야 하는 이유", question: "넣을 문항", example: "예시 문장" }],
+        interview: { questions: [{ q: "예상 질문", direction: "답변 방향" }], ask: ["역질문"] },
+        gaps: [{ gap: "부족한 역량", plan: "보완 방법" }],
+        verify: ["지원 전에 직접 확인할 것"]
+      }, null, 1),
+      "```",
+      "개수: overview 3, scores 4개 모두(item 이름 그대로), news 5개 내외, business 2~5, match 4~6, keywords 5~7, interview.questions 5, ask 2~3, gaps 2~4, verify 3~5."
+    ].join("\n");
+  }
+  function parseJson(text) {
+    const t = s(text).trim();
+    try { return JSON.parse(t); } catch (e) {}
+    const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fence) { try { return JSON.parse(fence[1]); } catch (e) {} }
+    const a = t.indexOf("{"), b = t.lastIndexOf("}");
+    if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (e) {} }
+    return null;
+  }
+
+  /* ================= 편집 가능한 행 목록 ================= */
+  // cols: [{k, label, type: text|textarea|select, opts, ph, w}]
+  function editableRows(list, cols, onChange, addLabel, datalistId) {
+    const wrap = h("div", "rows-wrap");
+    const rows = h("div", "rows");
+    const tmpl = cols.map((c) => c.w || "1fr").join(" ") + " auto";
+    function draw() {
+      rows.innerHTML = "";
+      if (!list.length) rows.appendChild(h("p", "hint", "아직 비어 있어요. 아래 버튼으로 추가하세요."));
+      list.forEach((item, idx) => {
+        const r = h("div", "erow");
+        r.style.gridTemplateColumns = tmpl;
+        cols.forEach((c) => {
+          const f = h("label", "f");
+          f.appendChild(h("span", "", c.label));
+          let el;
+          if (c.type === "select") {
+            el = document.createElement("select");
+            c.opts.forEach((o) => { const op = h("option", "", o || "선택"); op.value = o; el.appendChild(op); });
+          } else if (c.type === "textarea") { el = document.createElement("textarea"); el.rows = 2; }
+          else { el = document.createElement("input"); el.type = "text"; if (c.list && datalistId) el.setAttribute("list", datalistId); }
+          if (c.ph) el.placeholder = c.ph;
+          el.value = s(item[c.k]);
+          el.addEventListener("input", () => { item[c.k] = el.value; onChange(); });
+          el.addEventListener("change", () => { item[c.k] = el.value; onChange(); });
+          f.appendChild(el); r.appendChild(f);
+        });
+        const rm = btn("삭제", "rm btn-danger");
+        rm.setAttribute("aria-label", (idx + 1) + "번째 줄 삭제");
+        rm.addEventListener("click", () => { list.splice(idx, 1); onChange(true); draw(); });
+        r.appendChild(rm);
+        rows.appendChild(r);
+      });
+    }
+    draw();
+    const add = btn("+ " + addLabel, "btn-add");
+    add.addEventListener("click", () => {
+      const o = {}; cols.forEach((c) => { o[c.k] = c.type === "select" ? c.opts[0] : ""; });
+      list.push(o); onChange(true); draw();
+      const last = rows.querySelector(".erow:last-child input, .erow:last-child textarea");
+      if (last) last.focus();
+    });
+    wrap.append(rows, add);
+    return wrap;
+  }
+  function listArea(obj, key, label, ph) {
+    const f = h("label", "field");
+    f.appendChild(h("span", "lbl-sm", label + " (한 줄에 하나)"));
+    const ta = document.createElement("textarea"); ta.className = "list-ta"; ta.placeholder = ph || ""; ta.value = arr(obj[key]).join("\n");
+    ta.addEventListener("input", () => { obj[key] = lines(ta.value); changed(); });
+    f.appendChild(ta);
+    return f;
+  }
+  function textField(obj, key, label, ph) {
+    const f = h("label", "field");
+    f.appendChild(h("span", "lbl-sm", label));
+    const el = document.createElement("input"); el.type = "text"; el.placeholder = ph || ""; el.value = s(obj[key]);
+    el.addEventListener("input", () => { obj[key] = el.value; changed(); });
+    f.appendChild(el);
+    return f;
+  }
+  function selectField(obj, key, label, opts) {
+    const f = h("label", "field");
+    f.appendChild(h("span", "lbl-sm", label));
+    const el = document.createElement("select");
+    opts.forEach((o) => { const op = h("option", "", o || "선택"); op.value = o; el.appendChild(op); });
+    el.value = s(obj[key]);
+    el.addEventListener("change", () => { obj[key] = el.value; changed(); });
+    f.appendChild(el);
+    return f;
+  }
+  function changed() { saveCurrent(false); }
+
+  /* ================= 워크북 화면 ================= */
+  function section(no, num, title, open) {
+    const sec = h("details", "sec");
+    sec.open = !!open;
+    const sum = document.createElement("summary");
+    const h3 = document.createElement("h3");
+    h3.append(h("span", "no", no), document.createTextNode(title + " "));
+    const pill = h("span", "pill fill-pill"); pill.dataset.sec = num;
+    h3.appendChild(pill);
+    sum.appendChild(h3); sec.appendChild(sum);
+    sec.addEventListener("toggle", syncAllBtn);
+    return sec;
+  }
+  function syncAllBtn() {
+    const b = $("toggleAll"); if (!b) return;
+    const all = [...document.querySelectorAll("#report details.sec")];
+    const allOpen = all.length && all.every((d) => d.open);
+    b.textContent = allOpen ? "모두 접기" : "모두 펼치기";
+  }
+  function updateProgress() {
+    if (!current) return;
+    const r = current.report;
+    let done = 0;
+    document.querySelectorAll(".fill-pill").forEach((p) => {
+      const ok = filled[p.dataset.sec](r);
+      if (ok) done++;
+      p.textContent = ok ? "작성함" : "작성 전";
+      p.className = "pill fill-pill " + (ok ? "good" : "neutral");
+    });
+    const pg = $("progressText"); if (pg) pg.textContent = "준비도 " + done + " / 10";
+    const ch = $("cheer");
+    if (ch) ch.textContent = done === 0 ? "시작이 반이에요! 바로가기부터 눌러볼까요?" : done < 4 ? "좋아요, 감 잡았어요!" : done < 7 ? "벌써 절반 넘었어요. 이 기세 그대로!" : done < 10 ? "거의 다 왔어요. 조금만 더!" : "준비 완료! 이제 자신 있게 지원하세요";
+    if (done === 10 && current && !current.celebrated) { current.celebrated = true; confetti(); saveCurrent(false); }
+    const pb = $("progressFill"); if (pb) pb.style.width = (done * 10) + "%";
+    updateGauge();
+  }
+  function updateGauge() {
+    const g = $("gauge"); if (!g || !current) return;
+    const sc = computeScore(current.report, current.weights);
+    const b = band(sc.pct, sc.scored);
+    g.className = "score " + b.cls;
+    const C = 2 * Math.PI * 52;
+    g.querySelector(".val").setAttribute("stroke-dashoffset", String(C * (1 - (sc.scored ? sc.pct : 0) / 100)));
+    g.querySelector(".big").textContent = sc.scored ? sc.pct + "%" : "–";
+    g.querySelector(".lab").textContent = b.label;
+  }
+  function gauge() {
+    const sc = h("div", "score none"); sc.id = "gauge";
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 120 120"); svg.setAttribute("class", "ring"); svg.setAttribute("aria-hidden", "true");
+    const C = 2 * Math.PI * 52;
+    ["track", "val"].forEach((cls) => {
+      const c = document.createElementNS(NS, "circle");
+      c.setAttribute("cx", "60"); c.setAttribute("cy", "60"); c.setAttribute("r", "52"); c.setAttribute("class", cls);
+      c.setAttribute("stroke-dasharray", String(C)); c.setAttribute("stroke-dashoffset", cls === "track" ? "0" : String(C));
+      svg.appendChild(c);
+    });
+    const mid = h("div", "ring-mid"); mid.append(h("div", "big", "–"), h("div", "cap", "지원 추천도"));
+    const wr = h("div", "ring-wrap"); wr.append(svg, mid);
+    sc.append(wr, h("div", "lab", "채점 전"));
+    return sc;
+  }
+
+  function confetti() {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const cv = document.createElement("canvas"); cv.className = "confetti";
+    cv.width = innerWidth; cv.height = innerHeight; document.body.appendChild(cv);
+    const ctx = cv.getContext("2d");
+    const colors = ["#14a35b", "#ffd43b", "#ff8a7a", "#4dabf7", "#7ce3ae"];
+    const ps = Array.from({ length: 140 }, () => ({ x: innerWidth / 2 + (Math.random() - .5) * 200, y: innerHeight / 3, vx: (Math.random() - .5) * 14, vy: Math.random() * -12 - 4, r: Math.random() * 6 + 4, c: colors[Math.floor(Math.random() * colors.length)], a: Math.random() * 6 }));
+    let t = 0;
+    (function tick() {
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ps.forEach((p) => { p.vy += .35; p.x += p.vx; p.y += p.vy; p.a += .15; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore(); });
+      if (++t < 150) requestAnimationFrame(tick); else cv.remove();
+    })();
+  }
+
+  function renderEmpty() {
+    const root = $("report"); root.innerHTML = "";
+    const sec = h("section", "sec empty");
+    const art = document.createElement("div"); art.className = "empty-art"; art.setAttribute("aria-hidden", "true");
+    art.innerHTML = '<svg viewBox="0 0 200 140"><circle cx="150" cy="40" r="26" fill="#ffd43b"/><path d="M20 110 L120 50 L95 120 L80 95 Z" fill="#14a35b"/><path d="M120 50 L80 95 L72 125 Z" fill="#0b7a43"/><path d="M20 110 L80 95" stroke="#fff" stroke-width="3"/><path d="M30 128 q30 -20 60 0 t60 0" fill="none" stroke="#7ce3ae" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 10"/><path d="M170 92l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#ff8a7a"/></svg>';
+    sec.append(art, h("h3", "", "첫 번째 기업을 분석해 볼까요?"), h("p", "", "왼쪽에 가고 싶은 기업 이름만 넣고 [분석 워크북 만들기]를 누르면 조사할 곳과 분석 양식이 바로 준비돼요."));
+    const ol = h("ol", "empty-steps");
+    ["기업명 입력 (직무, 채용공고는 선택)", "조사 바로가기로 공시·뉴스·채용공고 확인", "①~⑩ 양식을 채우면 추천도와 자소서 키워드 완성", "(선택) AI에 부탁서를 붙여넣고 결과로 양식 자동 채우기"].forEach((t) => ol.appendChild(h("li", "", t)));
+    sec.appendChild(ol); root.appendChild(sec);
+  }
+
+  function renderWorkbook() {
+    const e = current, r = e.report;
+    const root = $("report"); root.innerHTML = "";
+    const openState = {};
+
+    // 머리글
+    const head = h("div", "r-head");
+    const left = h("div", "r-title");
+    const tx = document.createElement("div");
+    const title = h("h2", "", e.company);
+    tx.append(title, h("div", "r-meta", e.role + " · " + e.date + " 시작"));
+    left.append(h("div", "avatar", Array.from(e.company)[0] || "?"), tx);
+    const tools = h("div", "toolbar");
+    const allBtn = btn("모두 펼치기"); allBtn.id = "toggleAll";
+    allBtn.addEventListener("click", () => {
+      const all = [...document.querySelectorAll("#report details.sec")];
+      const open = !all.every((d) => d.open); all.forEach((d) => { d.open = open; }); syncAllBtn();
+    });
+    const copyBtn = btn("리포트 복사"); const cst = h("span", "status");
+    copyBtn.addEventListener("click", () => copyText(toMarkdown(current), cst));
+    tools.append(cst, allBtn, copyBtn);
+    head.append(left, tools);
+    root.appendChild(head);
+    const pg = h("div", "progress");
+    const pbar = h("div", "bar"); const pfill = document.createElement("i"); pfill.id = "progressFill"; pfill.style.width = "0%"; pbar.appendChild(pfill);
+    const ptxt = h("span", "", ""); ptxt.id = "progressText";
+    const saved = h("span", "saved", "자동 저장돼요"); saved.id = "savedNote";
+    const cheer = h("span", "cheer", ""); cheer.id = "cheer";
+    pg.append(ptxt, pbar, cheer, saved);
+    root.appendChild(pg);
+
+    // 조사 바로가기
+    const rs = h("section", "sec");
+    const rh = h("h3", ""); rh.append(h("span", "no", "Go"), document.createTextNode("조사 바로가기"));
+    rs.append(rh, h("p", "hint", "누르면 새 탭에서 ‘" + e.company + "’ 검색 결과가 열려요. 오른쪽 아래 번호는 채울 섹션이에요."));
+    const links = h("div", "links");
+    researchLinks(e.company, e.role).forEach((l) => {
+      const a = h("a", "lk"); a.href = l.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+      a.append(h("strong", "", l.name), h("span", "", l.desc));
+      const f = h("div", "for"); l.for.forEach((x) => f.appendChild(h("i", "", x))); a.appendChild(f);
+      links.appendChild(a);
+    });
+    rs.appendChild(links);
+    root.appendChild(rs);
+
+    // AI 도우미 (선택)
+    const ai = h("details", "sec");
+    const aiSum = document.createElement("summary");
+    const aiH = h("h3", ""); aiH.append(h("span", "no", "AI"), document.createTextNode("AI로 자동 채우기 "), h("span", "optional-tag", "선택"));
+    aiSum.appendChild(aiH); ai.appendChild(aiSum);
+    ai.appendChild(h("p", "hint", "ChatGPT, Gemini, Perplexity, Claude 등 평소 쓰는 무료 AI를 이용해요. 웹 검색이 되는 AI일수록 최신 정보가 정확해요. AI 답변은 틀릴 수 있으니 출처를 꼭 확인하세요."));
+    const steps = h("div", "ai-steps");
+    const s1 = h("div", "ai-step");
+    const s1h = document.createElement("h4"); s1h.append(h("b", "", "1"), document.createTextNode("부탁서 복사해서 AI에 붙여넣기"));
+    const pst = h("span", "status");
+    const cp = btn("부탁서 복사", "btn-primary");
+    cp.addEventListener("click", () => copyText(buildPrompt(current), pst));
+    const aiLinks = h("div", "ai-links");
+    [["ChatGPT", "https://chatgpt.com/"], ["Gemini", "https://gemini.google.com/"], ["Perplexity", "https://www.perplexity.ai/"], ["Claude", "https://claude.ai/new"]].forEach(([n, u]) => {
+      const a = h("a", "", n + " 열기 ↗"); a.href = u; a.target = "_blank"; a.rel = "noopener noreferrer"; aiLinks.appendChild(a);
+    });
+    const tb = h("div", "toolbar"); tb.append(cp, pst);
+    s1.append(s1h, h("p", "hint", "내 프로필(사용 중)과 채점 기준, 채용공고가 들어간 부탁서가 복사돼요."), tb, aiLinks);
+    const s2 = h("div", "ai-step");
+    const s2h = document.createElement("h4"); s2h.append(h("b", "", "2"), document.createTextNode("AI 답변 붙여넣고 채우기"));
+    const ta = document.createElement("textarea"); ta.id = "pasteBox"; ta.placeholder = "AI가 준 답변 전체(```json ... ```)를 붙여넣으세요";
+    const fst = h("span", "status");
+    const fillBtn = btn("양식 자동 채우기", "btn-primary");
+    let armed = false, armT = null;
+    fillBtn.addEventListener("click", () => {
+      const data = parseJson(ta.value);
+      if (!data || typeof data !== "object") { flash(fst, "JSON을 찾지 못했어요. AI 답변의 코드 블록 전체를 붙여넣어 주세요", "err"); return; }
+      const hasData = Object.values(filled).some((f) => f(current.report));
+      if (hasData && !armed) {
+        armed = true; fillBtn.textContent = "덮어쓰려면 한 번 더";
+        armT = setTimeout(() => { armed = false; fillBtn.textContent = "양식 자동 채우기"; }, 4000);
+        flash(fst, "이미 작성한 내용이 AI 결과로 바뀌어요", "err");
+        return;
+      }
+      clearTimeout(armT); armed = false;
+      current.report = normalize(data);
+      if (current.role === "직무 미지정" && current.report.job.name) current.role = s(current.report.job.name).slice(0, 60);
+      saveCurrent(true);
+      renderWorkbook();
+      [...document.querySelectorAll("#report details.sec")].forEach((d) => { d.open = true; }); syncAllBtn();
+      const st = $("aiStatus"); if (st) flash(st, "AI 결과로 양식을 채웠어요. 내용을 확인하고 고쳐 쓰세요", "ok");
+    });
+    const tb2 = h("div", "toolbar"); tb2.append(fillBtn, fst);
+    s2.append(s2h, ta, tb2);
+    steps.append(s1, s2);
+    const aiSt = h("span", "status"); aiSt.id = "aiStatus";
+    ai.append(steps, aiSt);
+    root.appendChild(ai);
+
+    // ① 한눈에 보기
+    let sec = section("①", 1, "한눈에 보기 · 추천도", true);
+    const hero = h("div", "hero");
+    const sliders = h("div", "bars");
+    r.scores.forEach((sc, i) => {
+      const w = e.weights[i];
+      const row = h("div", "slider-row");
+      const lab = h("label", "", RUBRIC[i].name); lab.htmlFor = "sl" + i;
+      const rg = document.createElement("input"); rg.type = "range"; rg.min = "0"; rg.max = String(w); rg.step = "1"; rg.id = "sl" + i;
+      rg.value = String(Math.min(w, Number(sc.got) || 0));
+      const v = h("span", "v", rg.value + " / " + w);
+      rg.addEventListener("input", () => { sc.got = Number(rg.value); v.textContent = rg.value + " / " + w; changed(); updateGauge(); });
+      row.append(lab, rg, v);
+      const rsn = document.createElement("input"); rsn.type = "text"; rsn.className = "reason"; rsn.placeholder = ["근거 (예: SQL·Python 요구와 일치, 도메인 경험은 부족)", "근거 (예: 설문 분석 경험이 운영 지표 분석과 연결)", "근거 (예: 근무지는 맞고 연봉 정보는 확인 불가)", "근거 (예: 매출은 성장 중, 수익성은 낮음)"][i]; rsn.value = s(sc.reason);
+      rsn.setAttribute("aria-label", RUBRIC[i].name + " 근거");
+      rsn.addEventListener("input", () => { sc.reason = rsn.value; changed(); });
+      sliders.append(row, rsn);
+    });
+    hero.append(gauge(), sliders);
+    sec.appendChild(hero);
+    sec.appendChild(h("p", "hint", "슬라이더를 움직이면 추천도가 바로 계산돼요. 80% 이상 적극 지원 · 60~79% 조건부 · 60% 미만 신중 검토"));
+    sec.appendChild(listArea(r, "overview", "기업 개요 3줄", "예: 신선식품 중심 이커머스 기업으로…"));
+    const pc = h("div", "grid2");
+    pc.append(listArea(r, "pros", "장점"), listArea(r, "cons", "걸리는 점"));
+    sec.appendChild(pc);
+    root.appendChild(sec);
+
+    // ② 기본 정보
+    sec = section("②", 2, "기업 기본 정보");
+    let g = h("div", "grid2");
+    g.append(textField(r.basic, "industry", "업종", "예: 이커머스 · 물류"), textField(r.basic, "size", "규모 (기준 연도)", "예: 임직원 약 3,000명 (2025)"));
+    sec.appendChild(g);
+    sec.appendChild(h("span", "lbl-sm", "최근 3년 실적"));
+    sec.appendChild(editableRows(r.basic.financials, [{ k: "year", label: "연도", ph: "2025", w: "90px" }, { k: "revenue", label: "매출", ph: "예: 2조 3,000억 원" }, { k: "op", label: "영업이익", ph: "예: 120억 원" }], () => changed(), "연도 추가"));
+    sec.appendChild(listArea(r.basic, "affiliates", "주요 계열사"));
+    g = h("div", "grid2");
+    g.append(textField(r.basic, "source", "출처 (URL)", "https://dart.fss.or.kr/..."), selectField(r.basic, "conf", "신뢰도", ["", "높음", "보통", "확인 필요"]));
+    sec.appendChild(g);
+    root.appendChild(sec);
+
+    // ③ 주요 사업
+    sec = section("③", 3, "주요 사업");
+    sec.appendChild(editableRows(r.business, [{ k: "name", label: "사업", ph: "예: 풀필먼트", w: "1fr" }, { k: "desc", label: "설명", type: "textarea", w: "2fr" }, { k: "share", label: "매출 비중", ph: "예: 60%", w: "90px" }, { k: "products", label: "주력 제품·서비스", w: "1.3fr" }], () => changed(), "사업 추가"));
+    root.appendChild(sec);
+
+    // ④ 최근 동향
+    sec = section("④", 4, "최근 동향");
+    sec.appendChild(editableRows(r.news, [{ k: "date", label: "시기", ph: "2026-10", w: "90px" }, { k: "title", label: "제목", w: "1.3fr" }, { k: "summary", label: "요약", type: "textarea", w: "2fr" }, { k: "source", label: "출처 URL", w: "1fr" }, { k: "conf", label: "신뢰도", type: "select", opts: ["", "높음", "보통", "확인 필요"], w: "96px" }], () => changed(), "뉴스 추가"));
+    sec.appendChild(listArea(r, "newBiz", "새로 추진하는 사업"));
+    root.appendChild(sec);
+
+    // ⑤ 인재상
+    sec = section("⑤", 5, "인재상 · 조직문화");
+    sec.appendChild(editableRows(r.talent.values, [{ k: "keyword", label: "인재상 · 핵심가치 표현", w: "1fr" }, { k: "meaning", label: "의미", type: "textarea", w: "2fr" }], () => changed(), "인재상 추가"));
+    sec.appendChild(listArea(r.talent, "phrases", "반복해서 강조하는 표현", "채용 페이지, CEO 신년사에서 자주 나오는 말"));
+    g = h("div", "grid2");
+    g.append(textField(r.talent, "source", "출처 (URL)"), selectField(r.talent, "conf", "신뢰도", ["", "높음", "보통", "확인 필요"]));
+    sec.appendChild(g);
+    root.appendChild(sec);
+
+    // ⑥ 직무
+    sec = section("⑥", 6, "지원 직무 분석");
+    sec.appendChild(textField(r.job, "name", "직무명", e.role !== "직무 미지정" ? e.role : "예: 데이터 분석가"));
+    g = h("div", "grid2");
+    g.append(listArea(r.job, "tasks", "하는 일"), listArea(r.job, "skills", "요구 역량"), listArea(r.job, "preferred", "우대 사항"), listArea(r.job, "tools", "쓰는 기술·도구"));
+    sec.appendChild(g);
+    root.appendChild(sec);
+
+    // ⑦ 연결표
+    sec = section("⑦", 7, "내 경험 연결표");
+    const prof = activeProfile() || {};
+    const dl = document.createElement("datalist"); dl.id = "expOptions";
+    arr(prof.exps).filter((x) => x.title).forEach((x) => { const o = document.createElement("option"); o.value = x.title; dl.appendChild(o); });
+    sec.appendChild(dl);
+    sec.appendChild(h("p", "hint", "‘연결되는 내 경험’ 칸을 누르면 사용 중인 프로필의 경험 목록이 나와요."));
+    sec.appendChild(editableRows(r.match, [{ k: "need", label: "회사가 원하는 것", w: "1fr" }, { k: "evidence", label: "근거", w: "1fr" }, { k: "exp", label: "연결되는 내 경험", list: true, w: "1fr" }, { k: "point", label: "자소서 활용 포인트", type: "textarea", w: "1.5fr" }, { k: "strength", label: "강도", type: "select", opts: ["강", "중", "약"], w: "70px" }], () => changed(), "연결 추가", "expOptions"));
+    root.appendChild(sec);
+
+    // ⑧ 키워드
+    sec = section("⑧", 8, "자소서 필수 키워드");
+    sec.appendChild(editableRows(r.keywords, [{ k: "keyword", label: "키워드", w: "1fr" }, { k: "why", label: "넣어야 하는 이유", w: "1.3fr" }, { k: "question", label: "넣을 문항", w: "1fr" }, { k: "example", label: "예시 문장", type: "textarea", w: "2fr" }], () => changed(), "키워드 추가"));
+    root.appendChild(sec);
+
+    // ⑨ 면접
+    sec = section("⑨", 9, "면접 대비");
+    sec.appendChild(editableRows(r.interview.questions, [{ k: "q", label: "예상 질문", type: "textarea", w: "1fr" }, { k: "direction", label: "답변 방향", type: "textarea", w: "1.5fr" }], () => changed(), "질문 추가"));
+    sec.appendChild(listArea(r.interview, "ask", "내가 회사에 물어볼 질문"));
+    root.appendChild(sec);
+
+    // ⑩ 보완점
+    sec = section("⑩", 10, "보완점");
+    sec.appendChild(editableRows(r.gaps, [{ k: "gap", label: "부족한 역량", w: "1fr" }, { k: "plan", label: "보완 · 어필 방법", type: "textarea", w: "2fr" }], () => changed(), "보완점 추가"));
+    sec.appendChild(listArea(r, "verify", "지원 전에 직접 확인할 것"));
+    root.appendChild(sec);
+
+    updateProgress();
+    syncAllBtn();
+  }
+
+  /* ================= 마크다운 복사 ================= */
+  function toMarkdown(entry) {
+    const r = normalize(entry.report);
+    const sc = computeScore(r, entry.weights);
+    const L = [];
+    const tbl = (hd, rs) => { if (!rs.length) { L.push("(작성 전)", ""); return; } L.push("| " + hd.join(" | ") + " |", "|" + hd.map(() => "---").join("|") + "|"); rs.forEach((x) => L.push("| " + x.map((c) => s(c).replace(/\|/g, "/").replace(/\n/g, " ")).join(" | ") + " |")); L.push(""); };
+    const bl = (a) => { arr(a).forEach((x) => L.push("- " + x)); L.push(""); };
+    L.push("# " + entry.company + " 기업 분석 (" + entry.role + ")", entry.date, "");
+    L.push("## ① 한눈에 보기", "지원 추천도: **" + (sc.scored ? sc.pct + "%" : "채점 전") + "** (" + band(sc.pct, sc.scored).label + ")", "");
+    bl(r.overview);
+    tbl(["평가 항목", "점수", "근거"], sc.rows.map((x) => [x.name, x.got + "/" + x.w, x.reason]));
+    L.push("**장점**"); bl(r.pros); L.push("**걸리는 점**"); bl(r.cons);
+    L.push("## ② 기업 기본 정보", "- 업종: " + (r.basic.industry || "-"), "- 규모: " + (r.basic.size || "-"), "- 주요 계열사: " + (r.basic.affiliates.join(", ") || "-"), "- 출처: " + (r.basic.source || "-"), "");
+    tbl(["연도", "매출", "영업이익"], r.basic.financials.map((f) => [f.year, f.revenue, f.op]));
+    L.push("## ③ 주요 사업"); tbl(["사업", "설명", "매출 비중", "주력"], r.business.map((x) => [x.name, x.desc, x.share, x.products]));
+    L.push("## ④ 최근 동향"); tbl(["시기", "제목", "요약", "출처", "신뢰도"], r.news.map((n) => [n.date, n.title, n.summary, n.source, n.conf]));
+    if (r.newBiz.length) { L.push("**신사업**"); bl(r.newBiz); }
+    L.push("## ⑤ 인재상 · 조직문화"); tbl(["인재상", "의미"], r.talent.values.map((v) => [v.keyword, v.meaning]));
+    if (r.talent.phrases.length) L.push("강조 표현: " + r.talent.phrases.join(", "), "");
+    L.push("## ⑥ 지원 직무 분석" + (r.job.name ? " - " + r.job.name : ""), "- 하는 일: " + r.job.tasks.join(", "), "- 요구 역량: " + r.job.skills.join(", "), "- 우대 사항: " + r.job.preferred.join(", "), "- 쓰는 기술: " + r.job.tools.join(", "), "");
+    L.push("## ⑦ 내 경험 연결표"); tbl(["회사가 원하는 것", "근거", "내 경험", "활용 포인트", "강도"], r.match.map((m) => [m.need, m.evidence, m.exp, m.point, m.strength]));
+    L.push("## ⑧ 자소서 필수 키워드"); tbl(["키워드", "이유", "문항", "예시 문장"], r.keywords.map((k) => [k.keyword, k.why, k.question, k.example]));
+    L.push("## ⑨ 면접 대비"); tbl(["예상 질문", "답변 방향"], r.interview.questions.map((q) => [q.q, q.direction]));
+    if (r.interview.ask.length) { L.push("**역질문**"); bl(r.interview.ask); }
+    L.push("## ⑩ 보완점"); tbl(["부족한 역량", "보완 방법"], r.gaps.map((x) => [x.gap, x.plan]));
+    if (r.verify.length) { L.push("**직접 확인할 것**"); bl(r.verify); }
+    return L.join("\n");
+  }
+
+  /* ================= 시작 ================= */
+  const profiles = getProfiles();
+  const active = profiles.find((x) => x.id === load(ACTIVE_KEY, null)) || profiles[0];
+  if (active) { applyProfile(active.data || {}); $("pname").value = active.name; setEditing(active.id); }
+  else { applyProfile({}); setEditing(null); $("profileCard").open = true; }
+  const hist = getHistory();
+  if (hist.length) openEntry(hist[0].id); else { renderEmpty(); renderHistory(); }
+})();
+</script>
+</body>
+</html>
