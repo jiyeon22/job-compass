@@ -430,6 +430,8 @@ details[open].sec > summary::after { background: var(--sun); }
 .lk strong { font-weight: 800; }
 .lk strong::after { content: "→"; background: var(--surface); border: 2px solid var(--ink); border-radius: 50%; width: 24px; height: 24px; display: inline-grid; place-items: center; font-size: 12px; color: var(--ink); flex: none; }
 .lk .for i { background: var(--surface); border: 1.5px solid var(--ink); color: var(--ink); border-radius: 99px; }
+.lk .tag { align-self: flex-start; font-style: normal; font-size: 11px; font-weight: 800; padding: 0 8px; border-radius: 99px; border: 1.5px solid var(--ink); background: var(--surface); color: var(--ink); }
+.lk .tag.ok { background: var(--accent); color: #fff; }
 
 /* AI 카드 */
 .ai-step { background: var(--paper); border: 2px dashed var(--line); border-radius: 16px; }
@@ -773,7 +775,7 @@ details[open].sec > summary::after { background: var(--sun); }
   function blankReport() {
     return {
       overview: [], scores: RUBRIC.map((r) => ({ item: r.name, got: 0, reason: "" })), pros: [], cons: [],
-      basic: { industry: "", size: "", financials: [], affiliates: [], source: "", conf: "" },
+      basic: { industry: "", size: "", homepage: "", careers: "", financials: [], affiliates: [], source: "", conf: "" },
       business: [], news: [], newBiz: [],
       talent: { values: [], phrases: [], source: "", conf: "" },
       job: { name: "", tasks: [], skills: [], preferred: [], tools: [] },
@@ -909,12 +911,30 @@ details[open].sec > summary::after { background: var(--sun); }
   });
 
   /* ================= 조사 바로가기 ================= */
-  function researchLinks(company, role) {
+  function safeUrl(u) { u = s(u).trim(); return /^https?:\/\/[^\s\/]+\.[^\s]+/i.test(u) ? u : ""; }
+  function hostOf(u) { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return u; } }
+  function drawLinks() {
+    const box = $("linkGrid"); if (!box || !current) return;
+    box.innerHTML = "";
+    researchLinks(current.company, current.role, current.report).forEach((l) => {
+      const a = h("a", "lk"); a.href = l.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+      a.append(h("strong", "", l.name), h("span", "", l.desc));
+      if (l.tag) a.appendChild(h("em", "tag" + (l.ok ? " ok" : ""), l.tag));
+      const f = h("div", "for"); l.for.forEach((x) => f.appendChild(h("i", "", x))); a.appendChild(f);
+      box.appendChild(a);
+    });
+  }
+  function researchLinks(company, role, rep) {
     const q = encodeURIComponent;
     const naver = (t) => "https://search.naver.com/search.naver?query=" + q(t);
     const google = (t) => "https://www.google.com/search?q=" + q(t);
+    // 검색 결과 목록 대신 첫 번째 결과(대개 공식 사이트)로 바로 이동
+    const direct = (t) => "https://www.google.com/search?btnI=1&q=" + q(t);
+    const basic = (rep && rep.basic) || {};
+    const home = safeUrl(basic.homepage), careers = safeUrl(basic.careers);
     return [
-      { name: "회사 홈페이지 · 채용 페이지", desc: "인재상, 핵심가치, 사업 소개", url: google(company + " 공식 홈페이지 채용 인재상"), for: ["⑤", "③"] },
+      { name: "회사 공식 홈페이지", desc: home ? hostOf(home) + " · 인재상, 사업 소개" : "공식 사이트를 찾아 바로 이동해요", url: home || direct(company), tag: home ? "확인된 주소" : "자동 이동 · 안내 화면에서 한 번 더 클릭", ok: !!home, for: ["⑤", "③"] },
+      { name: "공식 채용 페이지", desc: careers ? hostOf(careers) + " · 공고, 직무 소개" : "회사 채용 사이트를 찾아 바로 이동해요", url: careers || direct(company + " 채용 홈페이지"), tag: careers ? "확인된 주소" : "자동 이동 · 안내 화면에서 한 번 더 클릭", ok: !!careers, for: ["⑥", "⑤"] },
       { name: "DART 전자공시", desc: "사업보고서: 매출·영업이익·사업부 비중", url: "https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=" + q(company), for: ["②", "③"] },
       { name: "네이버 뉴스 (최신순)", desc: "최근 6개월 동향, 신사업", url: "https://search.naver.com/search.naver?where=news&sort=1&query=" + q(company), for: ["④"] },
       { name: "인재상 · CEO 메시지", desc: "신년사, 인터뷰에서 반복되는 표현", url: naver(company + " 인재상 핵심가치"), for: ["⑤", "⑧"] },
@@ -966,6 +986,7 @@ details[open].sec > summary::after { background: var(--sun); }
       "- conf는 '높음'(공식·공시 확인) / '보통'(언론 확인) / '확인 필요' 중 하나.",
       "- 모르면 '확인 불가', 추측은 문장 끝에 '(추정)'.",
       "- 재무 수치는 기준 연도를 반드시 적어.",
+      "- basic.homepage와 basic.careers에는 실제로 접속해 확인한 회사 공식 홈페이지와 공식 채용 페이지 주소를 넣어. 확인 못 했으면 빈 문자열로 둬.",
       "- 내 프로필에 없는 경험은 만들지 마. 연결이 약하면 strength를 '약'으로.",
       "- 키워드는 일반론이 아니라 그 회사가 실제로 쓰는 표현으로.",
       "- 다른 회사 이름을 넣어도 말이 되는 문장은 피하고, 이 회사만의 내용을 우선.",
@@ -977,7 +998,7 @@ details[open].sec > summary::after { background: var(--sun); }
         overview: ["기업 개요 3문장"],
         scores: [{ item: "직무 적합도", got: 30, reason: "근거" }],
         pros: ["장점"], cons: ["걸리는 점"],
-        basic: { industry: "업종", size: "규모(기준 연도)", financials: [{ year: "2025", revenue: "매출", op: "영업이익" }], affiliates: ["주요 계열사"], source: "https://...", conf: "높음" },
+        basic: { industry: "업종", size: "규모(기준 연도)", homepage: "https://회사 공식 홈페이지", careers: "https://공식 채용 페이지", financials: [{ year: "2025", revenue: "매출", op: "영업이익" }], affiliates: ["주요 계열사"], source: "https://...", conf: "높음" },
         business: [{ name: "사업부", desc: "설명", share: "매출 비중", products: "주력 제품·서비스" }],
         news: [{ date: "YYYY-MM", title: "제목", summary: "요약", source: "https://...", conf: "보통" }],
         newBiz: ["새로 추진하는 사업"],
@@ -1200,16 +1221,11 @@ details[open].sec > summary::after { background: var(--sun); }
     // 조사 바로가기
     const rs = h("section", "sec");
     const rh = h("h3", ""); rh.append(h("span", "no", "Go"), document.createTextNode("조사 바로가기"));
-    rs.append(rh, h("p", "hint", "누르면 새 탭에서 ‘" + e.company + "’ 검색 결과가 열려요. 오른쪽 아래 번호는 채울 섹션이에요."));
-    const links = h("div", "links");
-    researchLinks(e.company, e.role).forEach((l) => {
-      const a = h("a", "lk"); a.href = l.url; a.target = "_blank"; a.rel = "noopener noreferrer";
-      a.append(h("strong", "", l.name), h("span", "", l.desc));
-      const f = h("div", "for"); l.for.forEach((x) => f.appendChild(h("i", "", x))); a.appendChild(f);
-      links.appendChild(a);
-    });
+    rs.append(rh, h("p", "hint", "회사 홈페이지·채용 페이지는 검색 결과가 아니라 공식 사이트로 바로 열려요. ② 기본 정보에 주소가 있으면 그 주소로, 없으면 자동으로 찾아 이동해요. 나머지는 ‘" + e.company + "’ 검색 결과가 새 탭에서 열려요."));
+    const links = h("div", "links"); links.id = "linkGrid";
     rs.appendChild(links);
     root.appendChild(rs);
+    drawLinks();
 
     // AI 도우미 (선택)
     const ai = h("details", "sec");
@@ -1296,6 +1312,14 @@ details[open].sec > summary::after { background: var(--sun); }
     sec.appendChild(editableRows(r.basic.financials, [{ k: "year", label: "연도", ph: "2025", w: "90px" }, { k: "revenue", label: "매출", ph: "예: 2조 3,000억 원" }, { k: "op", label: "영업이익", ph: "예: 120억 원" }], () => changed(), "연도 추가"));
     sec.appendChild(listArea(r.basic, "affiliates", "주요 계열사"));
     g = h("div", "grid2");
+    const hpF = textField(r.basic, "homepage", "공식 홈페이지 주소", "https://www.회사.co.kr");
+    const crF = textField(r.basic, "careers", "공식 채용 페이지 주소", "https://회사.recruiter.co.kr");
+    hpF.querySelector("input").addEventListener("input", drawLinks);
+    crF.querySelector("input").addEventListener("input", drawLinks);
+    g.append(hpF, crF);
+    sec.appendChild(g);
+    sec.appendChild(h("p", "hint", "여기 적은 주소가 위 ‘조사 바로가기’의 홈페이지·채용 페이지 카드에 바로 연결돼요."));
+    g = h("div", "grid2");
     g.append(textField(r.basic, "source", "출처 (URL)", "https://dart.fss.or.kr/..."), selectField(r.basic, "conf", "신뢰도", ["", "높음", "보통", "확인 필요"]));
     sec.appendChild(g);
     root.appendChild(sec);
@@ -1371,7 +1395,7 @@ details[open].sec > summary::after { background: var(--sun); }
     bl(r.overview);
     tbl(["평가 항목", "점수", "근거"], sc.rows.map((x) => [x.name, x.got + "/" + x.w, x.reason]));
     L.push("**장점**"); bl(r.pros); L.push("**걸리는 점**"); bl(r.cons);
-    L.push("## ② 기업 기본 정보", "- 업종: " + (r.basic.industry || "-"), "- 규모: " + (r.basic.size || "-"), "- 주요 계열사: " + (r.basic.affiliates.join(", ") || "-"), "- 출처: " + (r.basic.source || "-"), "");
+    L.push("## ② 기업 기본 정보", "- 업종: " + (r.basic.industry || "-"), "- 규모: " + (r.basic.size || "-"), "- 공식 홈페이지: " + (r.basic.homepage || "-"), "- 채용 페이지: " + (r.basic.careers || "-"), "- 주요 계열사: " + (r.basic.affiliates.join(", ") || "-"), "- 출처: " + (r.basic.source || "-"), "");
     tbl(["연도", "매출", "영업이익"], r.basic.financials.map((f) => [f.year, f.revenue, f.op]));
     L.push("## ③ 주요 사업"); tbl(["사업", "설명", "매출 비중", "주력"], r.business.map((x) => [x.name, x.desc, x.share, x.products]));
     L.push("## ④ 최근 동향"); tbl(["시기", "제목", "요약", "출처", "신뢰도"], r.news.map((n) => [n.date, n.title, n.summary, n.source, n.conf]));
